@@ -97,7 +97,7 @@ void setup()
   Serial.begin(115200);
 
   // Configure accelerometers range
-    I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_16_G)
+    I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_16_G);
 }
 
 
@@ -143,7 +143,13 @@ void loop()
   // ::: Velocity :::
 
   // Calculate and update velocity
+  float tempVelX = velX;
+  float tempVelY = velY;
+  float tempVelZ = velZ;
 
+  velX = tempVelX + (accX*0.1);
+  velY = tempVelY + (accY*0.1);
+  velZ = tempVelZ + (accZ*0.1);
 
   // Display values
 
@@ -152,10 +158,15 @@ void loop()
   Serial.print ("\t");
   Serial.print (getAccY(),DEC);
   Serial.print ("\t");
-  Serial.print (getAccZ(),DEC);  
-  Serial.print ("\t");
+  Serial.print (getAccZ(),DEC);
+  Serial.print ("\n");
 
   // Velocity
+  Serial.print (getVelX(),DEC);
+  Serial.print ("\t");
+  Serial.print (getVelY(),DEC);
+  Serial.print ("\t");
+  Serial.print (getVelZ(),DEC);
 
   // End of line
   Serial.println("");
