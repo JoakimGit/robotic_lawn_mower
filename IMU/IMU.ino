@@ -130,7 +130,6 @@ void loop()
 
 
   // Convert 16 bits values to m/s^2
-  
   float axf= ax;
   float ayf = ay;
   float azf = az;
@@ -138,6 +137,7 @@ void loop()
   accX = axf/2048*9.82;
   accY = ayf/2048*9.82;
   accZ = azf/2048*9.82;
+  // acceleration = alpha * readAccelerationSensor() + (1 - alpha) * lastSensorReading
 
   // ____________________________________
   // ::: Velocity :::
@@ -147,9 +147,9 @@ void loop()
   float tempVelY = velY;
   float tempVelZ = velZ;
 
-  velX = tempVelX + (accX*0.1);
-  velY = tempVelY + (accY*0.1);
-  velZ = tempVelZ + (accZ*0.1);
+  velX = tempVelX + (accX*0.01);
+  velY = tempVelY + (accY*0.01);
+  velZ = tempVelZ + (accZ*0.01);
 
   // Display values
 
@@ -170,6 +170,6 @@ void loop()
 
   // End of line
   Serial.println("");
-  delay(100);    
+  // delay(10);
 }
 
