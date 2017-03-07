@@ -6,12 +6,12 @@
 #define    GYRO_FULL_SCALE_250_DPS    0x00
 #define    GYRO_FULL_SCALE_500_DPS    0x08
 #define    GYRO_FULL_SCALE_1000_DPS   0x10
-#define    GYRO_FULL_SCALE_2000_DPS   0x18 // More info at 4.7 in RM-MPU-9225.pdf
+#define    GYRO_FULL_SCALE_2000_DPS   0x18
 
 #define    ACC_FULL_SCALE_2_G        0x00  
 #define    ACC_FULL_SCALE_4_G        0x08
 #define    ACC_FULL_SCALE_8_G        0x10
-#define    ACC_FULL_SCALE_16_G       0x18
+#define    ACC_FULL_SCALE_16_G       0x18 // More info at 4.7 in RM-MPU-9225.pdf
 
 
 
@@ -45,6 +45,7 @@ void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
   Wire.endTransmission();
 }
 
+// === Acceleration ===
 float accX = 0;
 float accY = 0;
 float accZ = 0;
@@ -56,9 +57,35 @@ float getAccX() {
 float getAccY() {
   return accY;
 }
-
 float getAccZ() {
   return accZ;
+}
+
+// === Velocity ===
+float velX = 0;
+float velY = 0;
+float velZ = 0;
+
+// Return velocity
+float getVelX() {
+  return velX;
+}
+float getVelY() {
+  return velY;
+}
+float getVelZ() {
+  return velZ;
+}
+
+// Update velocity
+void setVelX(float v) {
+  velX = v;
+}
+void setVelY(float v) {
+  velY = v;
+}
+void setVelZ(float v) {
+  velZ = v;
 }
 
 
@@ -70,8 +97,7 @@ void setup()
   Serial.begin(115200);
 
   // Configure accelerometers range
-    writeByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_16_G);
-
+    I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_16_G)
 }
 
 
@@ -89,7 +115,7 @@ void loop()
 
 
   // ____________________________________
-  // :::  accelerometer::: 
+  // :::  Accelerometer  ::: 
 
   // Read accelerometer and gyroscope
   uint8_t Buf[14];
@@ -113,6 +139,11 @@ void loop()
   accY = ayf/2048*9.82;
   accZ = azf/2048*9.82;
 
+  // ____________________________________
+  // ::: Velocity :::
+
+  // Calculate and update velocity
+
 
   // Display values
 
@@ -123,6 +154,8 @@ void loop()
   Serial.print ("\t");
   Serial.print (getAccZ(),DEC);  
   Serial.print ("\t");
+
+  // Velocity
 
   // End of line
   Serial.println("");
