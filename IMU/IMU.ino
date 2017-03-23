@@ -85,16 +85,18 @@ void setVelZ(float v) {
   vel[2] = v;
 }
 
+
+/*
+// Highpass filter
 float prev[3];
 float prevHF[3];
 boolean doHPF = false;
-
 // ind - index of three dimensions (x, y, z)
 void makeHPFf() {
     for (int ind = 0; ind < 3; ind++) {
-        newAcc[ind] = acc[ind] * 0.002 * 9.8;
+        newAcc[ind] = acc[ind] * 0.002f * 9.8f;
         if (doHPF)
-            acc[ind] = newAcc[ind] - prev[ind] + (prevHF[ind] * 0.8);
+            acc[ind] = newAcc[ind] - prev[ind] + (prevHF[ind] * 0.8f);
         prev[ind] = newAcc[ind];
         prevHF[ind] = acc[ind];
     }
@@ -102,6 +104,19 @@ void makeHPFf() {
     if (!doHPF)
         doHPF = true;
 }
+*/
+
+
+/*
+// Lowpass filter
+static float ALPHA = 0.15f;
+void lowPass( float input[], float output[]) {
+    for ( int i=0; i<sizeof(input); i++ ) {
+        output[i] = output[i] + ALPHA * (input[i] - output[i]);
+        acc[i] = output[i];
+    }
+}
+*/
 
 // Initializations
 void setup()
@@ -110,8 +125,13 @@ void setup()
   Wire.begin();
   Serial.begin(115200);
 
+  // Configure gyroscope range
+  I2CwriteByte(MPU9250_ADDRESS,27,GYRO_FULL_SCALE_2000_DPS);
   // Configure accelerometers range
-    I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_16_G);
+  I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_16_G);
+
+  //double accAngle = (atan2(accY,accZ)+PI)*RAD_TO_DEG;
+  //kalman.setAngle(accAngle); // Set starting angle
     
 }
 
@@ -130,7 +150,7 @@ void loop()
 
 
   // ____________________________________
-  // :::  Accelerometer  ::: 
+  // :::  Accelerometer and gyroscope  ::: 
 
   // Read accelerometer and gyroscope
   uint8_t Buf[14];
@@ -143,6 +163,10 @@ void loop()
   int16_t ay=-(Buf[2]<<8 | Buf[3]);
   int16_t az=Buf[4]<<8 | Buf[5];
 
+  // Gyroscope
+  int16_t gx=-(Buf[8]<<8 | Buf[9]);
+  int16_t gy=-(Buf[10]<<8 | Buf[11]);
+  int16_t gz=Buf[12]<<8 | Buf[13];
 
   // Convert 16 bits values to m/s^2
   float af[3] = {ax, ay, az};
@@ -152,8 +176,11 @@ void loop()
   acc[1] = af[1]/2048*9.82;
   acc[2] = af[2]/2048*9.82;
 
-  // Run highpass filter
-  makeHPFf();
+  // Highpass filter
+  //makeHPFf();
+
+  // Lowpass filter
+  //lowPass(newAcc, acc);
 
   // ____________________________________
   // ::: Velocity :::
@@ -187,10 +214,24 @@ void loop()
   Serial.print ("\t");
   Serial.print ("VelZ: ");
   Serial.print (getVelZ(),DEC);
-  Serial.print ("VelZ: ");
+  Serial.print ("\n");
 
-  // End of line
-  Serial.println("");
+  // Gyroscope
+  Serial.print ("GyroX: ");
+  Serial.print (gx,DEC);
+  Serial.print("\t");
+  Serial.print ("GyroY: ");
+  Serial.print (gy,DEC);
+  Serial.print("\t");
+  Serial.print ("GyroZ: ");
+  Serial.print (gz,DEC);
+  Serial.print("\n");
+  Serial.print("\n");
+  Serial.print("\n");
+  Serial.print("\n");
+  Serial.print("\n");
+  Serial.print("\n");
+  
   // delay(10);
 }
 
