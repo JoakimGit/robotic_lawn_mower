@@ -18,25 +18,31 @@
 #define    ACC_SENSITIVITY            2048
 #define    GRAVITY                    9.82
 
+#define PERIOD    0.01      // Period in seconds
+
 
 class IMU {
 public:
     IMU();              // Constructor
-    void updateIMU();   // Update the IMU output data
+    void initIMU();        // Initialize I2C bus
     
-    float Acc[3];       // Accelerometer data in x,y,z [m/s^2]
-    float Gyro[3];      // Gyroscope data in x,y,z
+    void updateIMU();   // Update the IMU output data
+
+    float acc[3];       // Accelerometer output (x,y,z) [m/s^2]
+    float gyro[3];      // Gyroscope output (x,y,z) [raw]
+    float velocity[3];     // Velocity since reset (x,y,z) [m/s]
     
 
 private:
-    // Used to handle the I2C
+    // Used to handle the I2C bus
     void I2Cread(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint8_t* Data);
     void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data);
     uint8_t Buffer[14];    // Buffer used to save I2C data
 
     // IMU functions
-    void updateAcc();   // Read, convert and save raw data from accelerometer in Acc[3].
-    void updateGyro();  // Read, convert and save raw data from gyroscope in Acc[3].
+    void updateAcc();   // Read, convert and save raw data from accelerometer in Acc
+    void updateVel();   // Updates velocity with new accelerometer data.
+    void updateGyro();  // Read, convert and save raw data from gyroscope in Acc
 };
 
 

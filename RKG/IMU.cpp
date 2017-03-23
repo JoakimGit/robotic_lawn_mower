@@ -12,12 +12,6 @@ using namespace std;
 // Constructor
 IMU::IMU()
 {
-  Wire.begin();
-
-  // * Configure gyroscope range *
-  I2CwriteByte(MPU9250_ADDRESS,27,GYRO_FULL_SCALE_2000_DPS);
-  // * Configure accelerometers range *
-  I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_16_G);
 }
 
 
@@ -25,12 +19,30 @@ IMU::IMU()
  ***** Public methods *****
  */
 
+ // Initialize the I2C bus.
+void IMU::initIMU()
+{
+  Wire.begin();
+
+  // * Configure gyroscope range *
+  I2CwriteByte(MPU9250_ADDRESS,27,GYRO_FULL_SCALE_2000_DPS);
+  // * Configure accelerometers range *
+  I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_16_G);
+
+  // Set start values to 0.
+  IMU::velocity[0] = 0;
+  IMU::velocity[1] = 0;
+  IMU::velocity[2] = 0;
+}
+
+
 // Update the IMU output data
 void IMU::updateIMU()
 {
   I2Cread(MPU9250_ADDRESS,0x3B,14,IMU::Buffer); // Read raw data from the IMU
   updateAcc();                                  // Convert & update accelerometer data
   updateGyro();                                 // Update gyroscope data
+  updateVel();                                  // Update velocity
 }
 
 
@@ -76,17 +88,36 @@ void IMU::updateAcc()
   int16_t az=IMU::Buffer[4]<<8 | IMU::Buffer[5];
 
   // Convert 16 bits values to m/s^2.
-  // Sensitivity scale factor: 2048, Gravity: 8.82
+  // Save data in acc{x,y,z}
   float a[3];
   a[0] = ax; a[1] = ay; a[2] = az;
-  IMU::Acc[0] = a[0]/ACC_SENSITIVITY*GRAVITY;
-  IMU::Acc[1] = a[1]/ACC_SENSITIVITY*GRAVITY;
-  IMU::Acc[2] = a[2]/ACC_SENSITIVITY*GRAVITY;
+  IMU::acc[0] = a[0]/ACC_SENSITIVITY*GRAVITY;
+  IMU::acc[1] = a[1]/ACC_SENSITIVITY*GRAVITY;
+  IMU::acc[2] = a[2]/ACC_SENSITIVITY*GRAVITY;
   return;
 }
 
 // Read and convert data from the gyroscope
 void IMU::updateGyro()
 {
+  // Read data from buffer
+  int16_t gx=-(IMU::Buffer[8]<<8 | IMU::Buffer[9]);
+  int16_t gy=-(IMU::Buffer[10]<<8 | IMU::Buffer[11]);
+  int16_t gz=IMU::Buffer[12]<<8 | IMU::Buffer[13];
+
+  // Save data in gyro{x,y,z}
+  IMU::gyro[0] = gx;
+  IMU::gyro[1] = gy;
+  IMU::gyro[2] = gz;
   return;
 }
+
+// Update velocity data with most recent accelerometer output
+void IMU::updateVel()
+{
+  IMU::velocity[0] = velocity[0] + IMU::acc[0] * PERIOD;
+  IMU::velocity[1] = velocity[0] + IMU::acc[1] * PERIOD;
+  IMU::velocity[2] = velocity[0] + IMU::acc[2] * PERIOD;
+  return;
+}
+
