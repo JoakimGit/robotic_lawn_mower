@@ -34,7 +34,6 @@ void IMU::updateIMU()
 }
 
 
-
 /*
  ***** Private methods *****
  */

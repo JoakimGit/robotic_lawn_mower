@@ -24,6 +24,9 @@ public:
     IMU();              // Constructor
     void updateIMU();   // Update the IMU output data
     
+    float Acc[3];       // Accelerometer data in x,y,z [m/s^2]
+    float Gyro[3];      // Gyroscope data in x,y,z
+    
 
 private:
     // Used to handle the I2C
@@ -32,8 +35,6 @@ private:
     uint8_t Buffer[14];    // Buffer used to save I2C data
 
     // IMU functions
-    float Acc[3];       // Accelerometer data in x,y,z [m/s^2]
-    float Gyro[3];      // Gyroscope data in x,y,z
     void updateAcc();   // Read, convert and save raw data from accelerometer in Acc[3].
     void updateGyro();  // Read, convert and save raw data from gyroscope in Acc[3].
 };
