@@ -87,7 +87,7 @@ void IMU::updateAcc()
   int16_t ay=-(IMU::Buffer[2]<<8 | IMU::Buffer[3]);
   int16_t az=IMU::Buffer[4]<<8 | IMU::Buffer[5];
 
-  // Convert 16 bits values to m/s^2.
+  // Convert 16 bits values to m/s^2
   // Save data in acc{x,y,z}
   float a[3];
   a[0] = ax; a[1] = ay; a[2] = az;
@@ -95,6 +95,15 @@ void IMU::updateAcc()
   IMU::acc[1] = a[1]/ACC_SENSITIVITY*GRAVITY;
   IMU::acc[2] = a[2]/ACC_SENSITIVITY*GRAVITY;
   return;
+}
+
+// Reset velocity to zero
+void IMU::resetIMU()
+{
+  // Reset velocity
+  IMU::velocity[0] = 0;
+  IMU::velocity[1] = 0;
+  IMU::velocity[2] = 0;
 }
 
 // Read and convert data from the gyroscope

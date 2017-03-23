@@ -27,6 +27,7 @@ public:
     void initIMU();        // Initialize I2C bus
     
     void updateIMU();   // Update the IMU output data
+    void resetIMU();    // Reset velocity
 
     float acc[3];       // Accelerometer output (x,y,z) [m/s^2]
     float gyro[3];      // Gyroscope output (x,y,z) [raw]
