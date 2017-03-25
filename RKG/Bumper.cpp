@@ -2,11 +2,11 @@
 // Created by Joakim on 2017-03-25.
 //
 
-#include "USS.h"
+#include "Bumper.h"
 
 
 // Constructor
-USS::USS()
+Bumper::Bumper()
 {
 }
 
@@ -16,9 +16,9 @@ USS::USS()
  */
 
 // Update the IMU output data
-void USS::initUSS()
+void Bumper::initBumper()
 {
-  // Initiate USS
+  // Initiate Bumperor
 }
 
 

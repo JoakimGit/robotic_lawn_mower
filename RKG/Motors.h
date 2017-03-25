@@ -15,7 +15,7 @@
 class Motors {
 public:
     Motors();              // Constructor
-    void initMotors();     // Initialize I2C bus
+    void initMotors();     // 
     
 
 private:
@@ -24,4 +24,3 @@ private:
 
 
 #endif //MOTORS_H
-

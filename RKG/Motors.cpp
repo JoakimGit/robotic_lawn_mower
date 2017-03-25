@@ -25,10 +25,3 @@ void Motors::initMotors()
 /*
  ***** Private methods *****
  */
-
-// Reset velocity to zero
-void Motors::resetMotors()
-{
-  // Reset motors
-}
-
