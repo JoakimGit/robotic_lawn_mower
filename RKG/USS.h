@@ -15,7 +15,7 @@
 class USS {
 public:
     USS();              // Constructor
-    void initUSS);     // 
+    void initUSS();     // 
     
 
 private:
