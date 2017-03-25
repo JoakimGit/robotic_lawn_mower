@@ -1,5 +1,10 @@
 // :::  Includes :::
 #include "IMU.h"
+//#include "Motors.h"
+//#include "Cutting.h"
+//#include "IR.h"
+//#include "USS.h"
+//#include"Bumper.h"
 
 // ::: Variabler :::
 IMU imu;                    // Class used for IMU functions

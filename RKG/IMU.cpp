@@ -7,8 +7,6 @@
 #include "IMU.h"
 
 
-using namespace std;
-
 // Constructor
 IMU::IMU()
 {
