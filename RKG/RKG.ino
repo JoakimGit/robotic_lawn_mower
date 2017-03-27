@@ -8,8 +8,8 @@
 
 // ::: Variabler :::
 //IMU imu;                    // Class used for IMU functions
-//Motor rightMotor(8);         // Pin 8 is connected to the right motor
-//Motor leftMotor(9);          // Pin 9 is connected to the left motor
+Motor rightMotor(8);         // Pin 8 is connected to the right motor
+Motor leftMotor(9);          // Pin 9 is connected to the left motor
 
 // :::  Funktioner :::
 
@@ -44,14 +44,21 @@ boolean isSet;
 {
     Serial.begin(115200);
     //imu.initIMU();              // Initiate the IMU
-    //rightMotor.initMotor();     // Initiate the right motor
-    //leftMotor.initMotor();      // Initiate the left motor
+    rightMotor.initMotor();     // Initiate the right motor
+    leftMotor.initMotor();      // Initiate the left motor
 }
 
 
 // Main loop, read and display data
 void loop()
-{   
+{ 
+    rightMotor.changeSpeed(90);
+    leftMotor.changeSpeed(90);
+    //Serial.print(rightMotor.readSpeed());
+    delay(5000);
+    rightMotor.changeSpeed(130);
+    leftMotor.changeSpeed(130);
+    delay(5000);
     /* Example code for the motors.
      * rightMotor.updateMotor();
      * rightMotor.changeSpeed(150);

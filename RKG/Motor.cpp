@@ -13,20 +13,21 @@
 // Input defines which pin the vesc is connected to.
 Motor::Motor(int pin)
 {
-    currentThrottle = 0;
-    current = 0.0;           //measured battery current
-    motor_current = 0.0;     //measured motor current
-    voltage = 0.0;           //measured battery voltage
-    c_speed = 0.0;           //measured rpm * Pi * wheel diameter [km] * 60 [minutes]
-    c_dist = 0.00;           //measured odometry tachometer [turns] * Pi * wheel diameter [km] 
-    power = 0.0;            //calculated power
-    escPin = pin;              //set the pin that is connected to the vesc
+    currentThrottle = 0;     // Throttle from 0-180
+    escPin = pin;            //set the pin that is connected to the vesc
     minPulseRate = 1000;
     maxPulseRate = 2000;
-    throttleChangeDelay = 0;
-    Count_error;
-    esc;
-    VescMeasuredValues;
+    esc;                     // Servo
+    
+    // Output data from the hall sensor
+    VescMeasuredValues;      // Contains output from sensor
+    voltage = 0.0;           //measured battery voltage
+    current = 0.0;           //measured battery current
+    motor_current = 0.0;     //measured motor current
+    power = 0.0;             //calculated power
+    c_speed = 0.0;           //measured rpm * Pi * wheel diameter [km] * 60 [minutes]
+    // c_dist = 0.00;           //measured odometry tachometer [turns] * Pi * wheel diameter [km]
+    Count_error = 0;         // Used for debugging
 }
 
 

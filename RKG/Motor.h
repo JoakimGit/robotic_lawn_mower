@@ -15,34 +15,33 @@
 
 class Motor {
 public:
-    Motor(int);                   // Constructor
-    void initMotor();       // Attach the servo to the correct pin and set the pulse range
-    void updateMotor();     // Read values from the motors
-    void changeSpeed(int);      // Set new speed. Input 0-89 is backwards, 90 is still, 91-180 is foward
-    int readSpeed();         // Read speed.
-    int currentThrottle;
+    Motor(int);             // Constructor, specify which pin the motor is connected to
+    void initMotor();       // Attach the servo to the pin and set the pulse range
+    void updateMotor();     // Read values from the motor
+    void changeSpeed(int);  // Set speed (0-180). Less than 90 is backward, 90 is still, more than 90 is foward
+    int readSpeed();        // Read speed.
+    int currentThrottle;    // current throttle
 
-    
-//private:
+private:
     // Functions
     void changeThrottle(int);
     int readThrottle();
     int normalizeThrottle(int);
 
     // Variables
-    float current;           //measured battery current
-    float motor_current;     //measured motor current
-    float voltage;           //measured battery voltage
-    float c_speed;           //measured rpm * Pi * wheel diameter [km] * 60 [minutes]
-    float c_dist;            //measured odometry tachometer [turns] * Pi * wheel diameter [km] 
-    double power;            //calculated power
-    int escPin;
+    int escPin;                     //pin that motor is connected to
     int minPulseRate;
     int maxPulseRate;
-    int throttleChangeDelay;
-    int Count_error;
     Servo esc;
-    mc_values VescMeasuredValues;
+    // Output data from the hall sensor
+    mc_values VescMeasuredValues;   // Contains output from hall sensor
+    float voltage;                  //measured battery voltage
+    float current;                  //measured battery current
+    float motor_current;            //measured motor current
+    float c_speed;                  //measured rpm * Pi * wheel diameter [km] * 60 [minutes]
+    float c_dist;                   //measured odometry tachometer [turns] * Pi * wheel diameter [km] 
+    double power;                   //calculated power
+    int Count_error;
 };
 
 
