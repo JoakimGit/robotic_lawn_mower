@@ -8,8 +8,8 @@
 
 // ::: Variabler :::
 //IMU imu;                    // Class used for IMU functions
-Motors leftMotor(9);           // The motors are connected to pin 8 & 9.
-//Motors rightMotor(9);
+Motors rightMotor(8);         // Pin 8 is connected to the right motor
+Motors leftMotor(9);          // Pin 9 is connected to the left motor
 
 // :::  Funktioner :::
 
@@ -44,21 +44,26 @@ boolean isSet;
 {
     Serial.begin(115200);
     //imu.initIMU();
-    leftMotor.initMotors();
     isSet = false;
+    rightMotor.initMotors();
+    leftMotor.initMotors();
 }
 
 
 // Main loop, read and display data
 void loop()
-{
+{   
     if(!isSet) {
+        rightMotor.updateMotors();
         leftMotor.updateMotors();
+        rightMotor.changeSpeed(150);
         leftMotor.changeSpeed(150);
         isSet = true;
     } else {
+        rightMotor.updateMotors();
         leftMotor.updateMotors();
-        leftMotor.changeSpeed(0);
+        rightMotor.changeSpeed(90);
+        leftMotor.changeSpeed(90);
         isSet = false;
     }
     
@@ -70,30 +75,13 @@ void loop()
     //}
 
     
-    // Working code for IMU:
     // Update IMU data and save in x/y/z [m/s^2]
-    /*
-    imu.updateIMU();
-    float ax = imu.acc[0];
-    float ay = imu.acc[1];
-    float az = imu.acc[2];
 
-    float vx = imu.velocity[0];
-    float vy = imu.velocity[1];
-    float vz = imu.velocity[2];
-    
-    Serial.print("Acc [X/Y/Z]: ");
-    Serial.print(ax); Serial.print("\t");
-    Serial.print(ay); Serial.print("\t");
-    Serial.print(az); Serial.print("\n");
-
-    Serial.print("Vel {X/Y/Z]: ");
-    Serial.print(vx); Serial.print("\t");
-    Serial.print(vy); Serial.print("\t");
-    Serial.print(vz); Serial.print("\n");
-
-    Serial.print("\n");
-    */
+    /* // Example code for the IMU
+     * imu.updateIMU();
+     * float ax = imu.acc[0];
+     * float vx = imu.velocity[0];
+     */
 }
 
 
