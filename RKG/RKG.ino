@@ -1,6 +1,6 @@
 // :::  Includes :::
 #include "IMU.h"
-#include "Motors.h"
+#include "Motor.h"
 //#include "Cutting.h"
 //#include "IR.h"
 //#include "USS.h"
@@ -8,8 +8,8 @@
 
 // ::: Variabler :::
 //IMU imu;                    // Class used for IMU functions
-Motors rightMotor(8);         // Pin 8 is connected to the right motor
-Motors leftMotor(9);          // Pin 9 is connected to the left motor
+//Motor rightMotor(8);         // Pin 8 is connected to the right motor
+//Motor leftMotor(9);          // Pin 9 is connected to the left motor
 
 // :::  Funktioner :::
 
@@ -43,39 +43,19 @@ boolean isSet;
   void setup()
 {
     Serial.begin(115200);
-    //imu.initIMU();
-    isSet = false;
-    rightMotor.initMotors();
-    leftMotor.initMotors();
+    //imu.initIMU();              // Initiate the IMU
+    //rightMotor.initMotor();     // Initiate the right motor
+    //leftMotor.initMotor();      // Initiate the left motor
 }
 
 
 // Main loop, read and display data
 void loop()
 {   
-    if(!isSet) {
-        rightMotor.updateMotors();
-        leftMotor.updateMotors();
-        rightMotor.changeSpeed(150);
-        leftMotor.changeSpeed(150);
-        isSet = true;
-    } else {
-        rightMotor.updateMotors();
-        leftMotor.updateMotors();
-        rightMotor.changeSpeed(90);
-        leftMotor.changeSpeed(90);
-        isSet = false;
-    }
-    
-    delay(5000);
-
-    //if (isSet) {
-    //    isSet = false;
-    //    leftMotor.setSpeed(90); 
-    //}
-
-    
-    // Update IMU data and save in x/y/z [m/s^2]
+    /* Example code for the motors.
+     * rightMotor.updateMotor();
+     * rightMotor.changeSpeed(150);
+     */
 
     /* // Example code for the IMU
      * imu.updateIMU();

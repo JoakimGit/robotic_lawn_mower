@@ -6,12 +6,12 @@
 //#include "datatypes.h"
 #include "vesc_uart.h"
 //#include <SPI.h>
-#include "Motors.h"
+#include "Motor.h"
 
 
 // Constructor
 // Input defines which pin the vesc is connected to.
-Motors::Motors(int pin)
+Motor::Motor(int pin)
 {
     currentThrottle = 0;
     current = 0.0;           //measured battery current
@@ -35,7 +35,7 @@ Motors::Motors(int pin)
  */
 
 // Update the motor output data
-void Motors::initMotors()
+void Motor::initMotor()
 {   
     // Attach the servo to the correct pin and set the pulse range
     esc.attach(escPin, minPulseRate, maxPulseRate);
@@ -45,7 +45,7 @@ void Motors::initMotors()
 }
 
 // Read values from the motors
-void Motors::updateMotors()
+void Motor::updateMotor()
 {
     if (vesc_get_values(VescMeasuredValues)) {
         // Read values from the motors
@@ -59,12 +59,12 @@ void Motors::updateMotors()
     }
 }
 
-void Motors::changeSpeed(int nspeed)
+void Motor::changeSpeed(int nspeed)
 {
     changeThrottle(nspeed);
 }
 
-int Motors::readSpeed()
+int Motor::readSpeed()
 {
     return c_speed;
 }
@@ -73,20 +73,20 @@ int Motors::readSpeed()
  ***** Private methods *****
  */
 
-void Motors::changeThrottle(int throttle)
+void Motor::changeThrottle(int throttle)
 {
     int newThrottle = normalizeThrottle(throttle);
     currentThrottle = newThrottle;
     esc.write(newThrottle);
 }
 
-int Motors::readThrottle()
+int Motor::readThrottle()
 {
     return esc.read();
 }
 
 // Ensure that throttle value is between 0 - 180
-int Motors::normalizeThrottle(int value)
+int Motor::normalizeThrottle(int value)
 {
     if (value < 0)
       return 0;
