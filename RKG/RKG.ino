@@ -1,13 +1,15 @@
 // :::  Includes :::
 #include "IMU.h"
-//#include "Motors.h"
+#include "Motors.h"
 //#include "Cutting.h"
 //#include "IR.h"
 //#include "USS.h"
 //#include"Bumper.h"
 
 // ::: Variabler :::
-IMU imu;                    // Class used for IMU functions
+//IMU imu;                    // Class used for IMU functions
+Motors leftMotor(9);           // The motors are connected to pin 8 & 9.
+//Motors rightMotor(9);
 
 // :::  Funktioner :::
 
@@ -35,18 +37,39 @@ IMU imu;                    // Class used for IMU functions
 //int initIMU();                  // 
 //int updateIMU();                // Update data from IMU. Data is saved in imu::acc[3] & imu::gyro[3]
 
+boolean isSet;
 
 // Initializations
   void setup()
 {
     Serial.begin(115200);
-    imu.initIMU();
+    //imu.initIMU();
+    leftMotor.initMotors();
+    isSet = false;
 }
 
 
 // Main loop, read and display data
 void loop()
 {
+    if(!isSet) {
+        leftMotor.updateMotors();
+        leftMotor.changeSpeed(150);
+        isSet = true;
+    } else {
+        leftMotor.updateMotors();
+        leftMotor.changeSpeed(0);
+        isSet = false;
+    }
+    
+    delay(5000);
+
+    //if (isSet) {
+    //    isSet = false;
+    //    leftMotor.setSpeed(90); 
+    //}
+
+    
     // Working code for IMU:
     // Update IMU data and save in x/y/z [m/s^2]
     /*
@@ -71,8 +94,6 @@ void loop()
 
     Serial.print("\n");
     */
-    
-    delay(100);
 }
 
 
