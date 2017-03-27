@@ -37,9 +37,9 @@ IMU imu;                    // Class used for IMU functions
 
 
 // Initializations
-void setup()
+  void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(115200);
     imu.initIMU();
 }
 
@@ -47,7 +47,9 @@ void setup()
 // Main loop, read and display data
 void loop()
 {
+    // Working code for IMU:
     // Update IMU data and save in x/y/z [m/s^2]
+    /*
     imu.updateIMU();
     float ax = imu.acc[0];
     float ay = imu.acc[1];
@@ -56,7 +58,7 @@ void loop()
     float vx = imu.velocity[0];
     float vy = imu.velocity[1];
     float vz = imu.velocity[2];
-
+    
     Serial.print("Acc [X/Y/Z]: ");
     Serial.print(ax); Serial.print("\t");
     Serial.print(ay); Serial.print("\t");
@@ -67,6 +69,9 @@ void loop()
     Serial.print(vy); Serial.print("\t");
     Serial.print(vz); Serial.print("\n");
 
+    Serial.print("\n");
+    */
+    
     delay(100);
 }
 
