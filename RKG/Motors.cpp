@@ -34,21 +34,21 @@ Motors::Motors()
 void Motors::initMotors()
 {
     // Attach the servo to the correct pin and set the pulse range
-    Motors::esc.attach(escPin, minPulseRate, maxPulseRate);
+    // * Motors::esc.attach(escPin, minPulseRate, maxPulseRate);
 }
 
 void Motors::updateMotors()
 {
-    if (vesc_get_values(VescMeasuredValues)) {
+    // * if (vesc_get_values(VescMeasuredValues)) {
         // Read values from the motors
-        voltage = VescMeasuredValues.v_in;
-        current = VescMeasuredValues.current_in;
-        motor_current = VescMeasuredValues.current_motor;
+        // * voltage = VescMeasuredValues.v_in;
+        // * current = VescMeasuredValues.current_in;
+        // * motor_current = VescMeasuredValues.current_motor;
         power = current*voltage;
-        c_speed = (VescMeasuredValues.rpm/57.75);
+        // * c_speed = (VescMeasuredValues.rpm/57.75);
         //c_dist = (VescMeasuredValues.tachometer/57.75)*3.14159265359*0.000083;
         Count_error = 0;
-    }
+    // * }
 
     /*
      * if (Serial.available() > 0) {                            // Wait for input
@@ -67,13 +67,13 @@ void Motors::updateMotors()
 void changeThrottle(int throttle)
 {
     // readThrottle(throttle);
-    Motors::esc.write(throttle);
+    // * Motors::esc.write(throttle);
 }
 
 int readThrottle(int throttle)
 {
     
-    return Motors::esc.read();
+    // * return Motors::esc.read();
 }
 
 // Ensure that throttle value is between 0 - 180

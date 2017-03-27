@@ -16,22 +16,22 @@
 
 #define    ACC_FULL_SCALE_16_G        0x18
 #define    ACC_SENSITIVITY            2048
-#define    GRAVITY                    9.82
 
-#define PERIOD    0.01      // Period in seconds
+#define    GRAVITY                    9.82      // Gravity in Sweden
+#define    PERIOD                     0.01      // Period in seconds
 
 
 class IMU {
 public:
-    IMU();              // Constructor
-    void initIMU();        // Initialize I2C bus
+    IMU();                // Constructor
+    void initIMU();       // Initialize I2C bus
     
-    void updateIMU();   // Update the IMU output data
-    void resetIMU();    // Reset velocity
+    void updateIMU();     // Update the IMU output data
+    void resetIMU();      // Reset velocity
 
-    float acc[3];       // Accelerometer output (x,y,z) [m/s^2]
-    float gyro[3];      // Gyroscope output (x,y,z) [raw]
-    float velocity[3];     // Velocity since reset (x,y,z) [m/s]
+    float acc[3];         // Accelerometer output (x,y,z) [m/s^2]
+    float gyro[3];        // Gyroscope output (x,y,z) [raw]
+    float velocity[3];    // Velocity since reset (x,y,z) [m/s]
     
 
 private:

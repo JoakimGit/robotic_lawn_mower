@@ -39,6 +39,7 @@ IMU imu;                    // Class used for IMU functions
 // Initializations
 void setup()
 {
+    Serial.begin(9600);
     imu.initIMU();
 }
 
@@ -55,6 +56,36 @@ void loop()
     float vx = imu.velocity[0];
     float vy = imu.velocity[1];
     float vz = imu.velocity[2];
-    delay(1000);
+
+    Serial.print("Acc [X/Y/Z]: ");
+    Serial.print(ax); Serial.print("\t");
+    Serial.print(ay); Serial.print("\t");
+    Serial.print(az); Serial.print("\n");
+
+    Serial.print("Vel {X/Y/Z]: ");
+    Serial.print(vx); Serial.print("\t");
+    Serial.print(vy); Serial.print("\t");
+    Serial.print(vz); Serial.print("\n");
+
+    delay(100);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

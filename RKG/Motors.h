@@ -36,8 +36,8 @@ private:
     int maxPulseRate;
     int throttleChangeDelay;
     int Count_error;
-    Servo esc;
-    mc_values VescMeasuredValues;
+    // * Servo esc;
+    // * mc_values VescMeasuredValues;
 };
 
 
