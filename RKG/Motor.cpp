@@ -2,10 +2,6 @@
 // Created by Joakim on 2017-03-25.
 //
 
-//#include <Servo.h>
-//#include "datatypes.h"
-#include "vesc_uart.h"
-//#include <SPI.h>
 #include "Motor.h"
 
 

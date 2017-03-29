@@ -8,7 +8,8 @@
 /*
  * Defines
  */
- 
+
+#include "vesc_uart.h"
 #include <SPI.h>
 #include <Servo.h>
 #include "datatypes.h"

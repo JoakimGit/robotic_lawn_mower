@@ -5,6 +5,9 @@
 #ifndef IMU_IMU_H
 #define IMU_IMU_H
 
+#include "stdint.h"   // Enables use of uint8_t
+#include "Wire.h"     // Used to connect with the IC2 device.
+
 /*
  * Arduino mega 2560 rev3 addresses used by the IMU.
  */
