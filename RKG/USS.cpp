@@ -35,7 +35,8 @@ void USS::initUSS()
   // attachInterrupt(interruptPin, echo_interrupt(), CHANGE);  // Attach interrupt to the sensor echo input
   // echo_duration = 180;
 }
-int USS:readUSS()
+
+int USS::readUSS()
 {
   // return echo_duration/58;   // Print the distance in centimeters
   return 0;
