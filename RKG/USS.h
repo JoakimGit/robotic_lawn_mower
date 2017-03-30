@@ -5,7 +5,7 @@
 #ifndef USS_H
 #define USS_H
 
-//#include <TimerOne.h>     // Used for timer
+#include <Arduino.h>
 
 /*
  * Defines
@@ -16,18 +16,19 @@
 
 class USS {
 public:
-    USS(int pinOut, int pinIn, int interrupt);
+    USS(int pinOut, int pinIn);
     void initUSS();
     int readUSS();
     
 
 private:
-    // void privateFunction();
+    void timerIsr();                      // 50mS interrupt ISR(). Called evert time the hardware timer 1 times out.
+    void trigger_pulse();
+    void distance_flasher();
     
     // Variables
     int trigPin;                            // Triggers output
     int echoPin;                            // Recieves echo
-    int interruptPin;                          // Interrupt ID for echo pulse
     volatile long echo_start;               // Records start of echo pulse 
     volatile long echo_end;                 // Records end of echo pulse
     volatile long echo_duration;            // Duration - difference between end and start

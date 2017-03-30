@@ -6,10 +6,24 @@
 //#include "USS.h"
 //#include"Bumper.h"
 
+#define MOTORRIGHT  8                  // Pin 8 is connected to the right motor
+#define MOTORLEFT   9                  // Pin 9 is connected to the left motor
+
+#define SERIALRIGHT Serial3            // Serial ports connected to the hall sensor
+#define SERIALLEFT Serial2
+
+#define USS_TRIGGER1 12
+#define USS_TRIGGER2 11
+#define USS_TRIGGER3 10
+
+#define USS_ECHO1  2
+#define USS_ECHO2  3
+#define USS_ECHO3  19
+
 // ::: Variabler :::
 //IMU imu;                    // Class used for IMU functions
-Motor rightMotor(8);         // Pin 8 is connected to the right motor
-Motor leftMotor(9);          // Pin 9 is connected to the left motor
+Motor rightMotor(MOTORRIGHT, &SERIALRIGHT);         
+Motor leftMotor(MOTORLEFT, &SERIALLEFT);
 
 // :::  Funktioner :::
 
@@ -43,6 +57,8 @@ boolean isSet;
   void setup()
 {
     Serial.begin(115200);
+    SERIALRIGHT.begin(115200);
+    SERIALLEFT.begin(115200);
     //imu.initIMU();              // Initiate the IMU
     rightMotor.initMotor();     // Initiate the right motor
     leftMotor.initMotor();      // Initiate the left motor
@@ -53,12 +69,32 @@ boolean isSet;
 void loop()
 { 
     rightMotor.changeSpeed(90);
-    leftMotor.changeSpeed(90);
-    //Serial.print(rightMotor.readSpeed());
+    leftMotor.changeSpeed(180);
+    delay(1000);
+    rightMotor.updateMotor();
+    leftMotor.updateMotor();
+    Serial.println(rightMotor.readSpeed());
+    Serial.println(leftMotor.readSpeed());
     delay(5000);
+    
     rightMotor.changeSpeed(130);
-    leftMotor.changeSpeed(130);
+    leftMotor.changeSpeed(180);
+    delay(1000);
+    rightMotor.updateMotor();
+    leftMotor.updateMotor();
+    Serial.println(rightMotor.readSpeed());
+    Serial.println(leftMotor.readSpeed());
     delay(5000);
+
+    rightMotor.changeSpeed(180);
+    leftMotor.changeSpeed(1300);
+    delay(1000);
+    rightMotor.updateMotor();
+    leftMotor.updateMotor();
+    Serial.println(rightMotor.readSpeed());
+    Serial.println(leftMotor.readSpeed());
+    delay(5000);
+    
     /* Example code for the motors.
      * rightMotor.updateMotor();
      * rightMotor.changeSpeed(150);

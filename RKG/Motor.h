@@ -16,12 +16,13 @@
 
 class Motor {
 public:
-    Motor(int);             // Constructor, specify which pin the motor is connected to
-    void initMotor();       // Attach the servo to the pin and set the pulse range
-    void updateMotor();     // Read values from the motor
-    void changeSpeed(int);  // Set speed (0-180). Less than 90 is backward, 90 is still, more than 90 is foward
-    int readSpeed();        // Read speed.
-    int currentThrottle;    // current throttle
+    Motor(int, HardwareSerial*);   // Constructor, specify which pin the motor is connected to
+    void initMotor();              // Attach the servo to the pin and set the pulse range
+    void updateMotor();            // Read values from the motor
+    void changeSpeed(int);         // Set speed (0-180). Less than 90 is backward, 90 is still, more than 90 is foward
+    void stopMotor();              // Change speed to still.
+    int readSpeed();               // Read speed.
+    int currentThrottle;           // current throttle
 
 private:
     // Functions
@@ -31,6 +32,7 @@ private:
 
     // Variables
     int escPin;                     //pin that motor is connected to
+    HardwareSerial *serialIO;       //serial port for motor output
     int minPulseRate;
     int maxPulseRate;
     Servo esc;

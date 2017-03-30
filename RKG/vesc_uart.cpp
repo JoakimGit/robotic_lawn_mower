@@ -22,7 +22,7 @@ along with this program.If not, see <http://www.gnu.org/licenses/>.
 //#include "config.h"
 int Avicount;
 
-int process_received_msg(uint8_t *payloadReceived) {
+int process_received_msg(uint8_t *payloadReceived, HardwareSerial *serialIO) {
 
     //Messages <= 255 start with 2. 2nd byte is length
     //Messages >255 start with 3. 2nd and 3rd byte is length combined with 1st >>8 and then &0xFF
@@ -33,7 +33,7 @@ int process_received_msg(uint8_t *payloadReceived) {
     uint8_t messageReceived[256];
     int lenPayload = 0;
 
-    while (SERIALIO.available()) {
+    while (serialIO->available()) {
       /*
      //   DEBUGSERIAL.println("read available");
         if (Avicount == 200){
@@ -44,7 +44,7 @@ int process_received_msg(uint8_t *payloadReceived) {
           Avicount ++;
         }
         */
-        messageReceived[counter++] = SERIALIO.read();
+        messageReceived[counter++] = serialIO->read();
 
         if (counter == 2) {//case if state of 'counter' with last read 1
 
@@ -112,7 +112,7 @@ bool unpack_payload(uint8_t *message, int lenMes, uint8_t *payload, int lenPay) 
     }
 }
 
-int send_payload(uint8_t* payload, int lenPay) {
+int send_payload(uint8_t* payload, int lenPay, HardwareSerial *serialIO) {
     uint16_t crcPayload = crc16(payload, lenPay);
     int count = 0;
     uint8_t messageSend[256];
@@ -136,7 +136,7 @@ int send_payload(uint8_t* payload, int lenPay) {
     messageSend[count++] = 3;
     messageSend[count] = NULL;
     //Sending package
-    SERIALIO.write(messageSend, count);
+    serialIO->write(messageSend, count);
 
     //Returns number of send bytes
     return count;
@@ -185,12 +185,13 @@ bool process_read_package(uint8_t* message, mc_values& values, int len) {
 
 }
 
-bool vesc_get_values(mc_values& values) {
+ 
+bool vesc_get_values(mc_values& values, HardwareSerial *serialIO) {
     uint8_t command[1] = { COMM_GET_VALUES };
     uint8_t payload[256];
-    send_payload(command, 1);
-    //delay(15); //needed, otherwise data is not read
-    int lenPayload = process_received_msg(payload);
+    send_payload(command, 1, serialIO);                           // INCLUDE IOPIN
+    delay(15); //needed, otherwise data is not read
+    int lenPayload = process_received_msg(payload, serialIO);     // INCLUDE IOPIN
     if (lenPayload > 0) {
         bool read = process_read_package(payload, values, lenPayload); //returns true if sucessfull
         return read;

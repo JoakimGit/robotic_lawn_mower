@@ -9,11 +9,10 @@
 // pinOut: trigger output (Pins 10-12)
 // pinIn: echo input (Pins 2-4)
 // interruptPin: interrupt id (for echo pulsePins 0-2 are interrupt signals)
-USS::USS(int pinOut, int pinIn, int interrupt)
+USS::USS(int trigPin, int echoPin)
 {
-    trigPin = pinOut;
-    echoPin = pinIn;
-    interrupt = interrupt;
+    USS::trigPin = trigPin;
+    USS::echoPin = echoPin;
     echo_start = 0;
     echo_end = 0;
     echo_duration = 0;
@@ -29,9 +28,9 @@ USS::USS(int pinOut, int pinIn, int interrupt)
 // Initiate USS
 void USS::initUSS()
 {
-  // pinMode(trigPin, OUTPUT);
-  // pinMode(echoPin, INPUT);
-  // Timer1.attachInterrupt( timerIsr );                 // Attach interrupt to the timer service routine 
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  Timer1.attachInterrupt( timerIsr() );                 // Attach interrupt to the timer service routine 
   // attachInterrupt(interruptPin, echo_interrupt(), CHANGE);  // Attach interrupt to the sensor echo input
   // echo_duration = 180;
 }
@@ -46,6 +45,47 @@ int USS::readUSS()
 /*
  ***** Private methods *****
  */
+
+// timerIsr() 50uS second interrupt ISR()
+// Called every time the hardware timer 1 times out.
+// --------------------------
+void timerIsr()
+{
+    trigger_pulse();                                 // Schedule the trigger pulses
+}
+
+// trigger_pulse() called every 50 uS to schedule trigger pulses.
+// Generates a pulse one timer tick long.
+// Minimum trigger pulse width for the HC-SR04 is 10 us. This system
+// delivers a 50 uS pulse.
+// --------------------------
+void trigger_pulse()
+{
+      static volatile int state = 0;                 // State machine variable
+
+      if (!(--trigger_time_count))                   // Count to 200mS
+      {                                              // Time out - Initiate trigger pulse
+         trigger_time_count = TICK_COUNTS;           // Reload
+         state = 1;                                  // Changing to state 1 initiates a pulse
+      }
+    
+      switch(state)                                  // State machine handles delivery of trigger pulse
+      {
+        case 0:                                      // Normal state does nothing
+            break;
+        
+        case 1:                                      // Initiate pulse
+           digitalWrite(trigPin, HIGH);              // Set the trigger output high
+           state = 2;                                // and set state to 2
+           break;
+        
+        case 2:                                      // Complete the pulse
+        default:      
+           digitalWrite(trigPin, LOW);              // Set the trigger output low
+           state = 0;                                // and return state to normal 0
+           break;
+     }
+}
 
 /*
 void echo_interrupt1()

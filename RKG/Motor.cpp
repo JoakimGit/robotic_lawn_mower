@@ -7,10 +7,11 @@
 
 // Constructor
 // Input defines which pin the vesc is connected to.
-Motor::Motor(int pin)
+Motor::Motor(int pin, HardwareSerial *serialPin)
 {
     currentThrottle = 0;     // Throttle from 0-180
     escPin = pin;            //set the pin that is connected to the vesc
+    serialIO = serialPin;
     minPulseRate = 1000;
     maxPulseRate = 2000;
     esc;                     // Servo
@@ -44,21 +45,31 @@ void Motor::initMotor()
 // Read values from the motors
 void Motor::updateMotor()
 {
-    if (vesc_get_values(VescMeasuredValues)) {
+    if (vesc_get_values(VescMeasuredValues, serialIO)) {
         // Read values from the motors
         voltage = VescMeasuredValues.v_in;
         current = VescMeasuredValues.current_in;
         motor_current = VescMeasuredValues.current_motor;
         power = current*voltage;
-        c_speed = (VescMeasuredValues.rpm/57.75);
-        //c_dist = (VescMeasuredValues.tachometer/57.75)*3.14159265359*0.000083;
+        c_speed = (VescMeasuredValues.rpm/57.75);         // 57.5 measured value for gear box and electric poles
+        //c_dist = c_speed*3.14159265359*0.000083;
         Count_error = 0;
+
+        if (voltage < 17) {         // Stop motor if battery voltage is too low
+          stopMotor();
+        }
     }
 }
 
 void Motor::changeSpeed(int nspeed)
 {
+    
     changeThrottle(nspeed);
+}
+
+void Motor::stopMotor()
+{
+  changeSpeed(90);
 }
 
 int Motor::readSpeed()
