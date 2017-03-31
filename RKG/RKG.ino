@@ -20,38 +20,39 @@
 #define USS_ECHO2  3
 #define USS_ECHO3  19
 
+#define KP  0.5
+#define KI  4
+#define KD  0.03
+#define TF  0
+
 // ::: Variabler :::
 //IMU imu;                    // Class used for IMU functions
 Motor rightMotor(MOTORRIGHT, &SERIALRIGHT);         
 Motor leftMotor(MOTORLEFT, &SERIALLEFT);
 
-// :::  Funktioner :::
+// PID-regulator parameters
+unsigned long timer_us;
+static uint32_t pidTimer_us = 0;
+double h;
+// Reference values
+float ref_left;
+float ref_right;
+// Reference error
+float e_left;
+float e_right;
+float e_old_left;
+float e_old_right;
+// PID variables
+float P_left;
+float P_right;
+float D_left;
+float D_right;
+float I_left;
+float I_right;
+// PID output
+float u_left;
+float u_right;
 
-// TO-DO: Driving motor functions
-//void initMotors();        // Initialize the driving motors
-//void stopMotors();        // Turn off the driving motors
-//void goForward();         // Go foward
-//void goBackward();        // Go backwards
-//void turnLeft();          // Turn left
-//void turnRight();         // Turn right
-//void turnAway();          // Turn away from an obstacle in a random direction
-
-// TO-DO: Cutting motor functions
-//void initCutting();       // Initialize the cutting motor
-//void startCutting();      // Star the cutting motor
-//void stopCutting();       // Turn off the cutting motor
-
-// STARTED: Sensor functions
-//TO-DO void initIR();            // Initialize infrared sensor
-//TO-DO boolean readIR(int);      // Returns true if the cutting unit is too far from the ground (how far is specified with input)
-//TO-DO void initUSS();           // Initialize ultrasonic sensor
-//TO-DO boolean readUSS(int);     // Returns true if an object is in front off the robot (how far is specified by input)
-//TO-DO void initBumper();        // Initialize bumper sensor
-//TO-DO boolean readBumper();     // Returns true if the bumper sensor is triggered
-//int initIMU();                  // 
-//int updateIMU();                // Update data from IMU. Data is saved in imu::acc[3] & imu::gyro[3]
-
-boolean isSet;
 
 // Initializations
   void setup()
@@ -67,39 +68,38 @@ boolean isSet;
 
 // Main loop, read and display data
 void loop()
-{ 
-    rightMotor.changeSpeed(90);
-    leftMotor.changeSpeed(180);
-    delay(1000);
-    rightMotor.updateMotor();
-    leftMotor.updateMotor();
-    Serial.println(rightMotor.readSpeed());
-    Serial.println(leftMotor.readSpeed());
-    delay(5000);
-    
-    rightMotor.changeSpeed(130);
-    leftMotor.changeSpeed(180);
-    delay(1000);
-    rightMotor.updateMotor();
-    leftMotor.updateMotor();
-    Serial.println(rightMotor.readSpeed());
-    Serial.println(leftMotor.readSpeed());
-    delay(5000);
+{
+     
+    // Time management - read actual time and calculate the time since last sample time
+    timer_us = micros(); // Time of current sample in microseconds  
+    h = (double)(timer_us - pidTimer_us) / 1000000.0; // Time since last sample in seconds
+    pidTimer_us = timer_us;  // Save the time of this sampleTime of last sample
 
-    rightMotor.changeSpeed(180);
-    leftMotor.changeSpeed(1300);
-    delay(1000);
-    rightMotor.updateMotor();
-    leftMotor.updateMotor();
-    Serial.println(rightMotor.readSpeed());
-    Serial.println(leftMotor.readSpeed());
-    delay(5000);
-    
-    /* Example code for the motors.
-     * rightMotor.updateMotor();
-     * rightMotor.changeSpeed(150);
-     */
+    // Read RPM of left and right motors.
+    float leftRPM = leftMotor.readSpeed();
+    float rightRPM = rightMotor.readSpeed();
 
+    // Error
+    e_left = ref_left-leftRPM;
+    e_right = ref_right-rightRPM;
+
+    // PID-reg
+    P_left = KP * e_left;
+    P_right = KP * e_right;
+    
+    D_left = TF/(TF+h)*D_left + KD/(TF+h)*(e_left-e_old_left);
+    D_right = TF/(TF+h)*D_right + KD/(TF+h)*(e_right-e_old_right);
+    
+    u_left = P_left + I_left + D_left; // Calculate control output
+    u_right = P_right + I_right + D_right;
+
+    I_left = I_left + KI*h * e_left;
+    I_right = I_right + KI*h * e_right;
+
+    // Output
+    leftMotor.setRPM(u_left);
+    rightMotor.setRPM(u_right);
+    
     /* // Example code for the IMU
      * imu.updateIMU();
      * float ax = imu.acc[0];

@@ -30,7 +30,7 @@ void USS::initUSS()
 {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
-  Timer1.attachInterrupt( timerIsr() );                 // Attach interrupt to the timer service routine 
+  //Timer1.attachInterrupt( timerIsr() );                 // Attach interrupt to the timer service routine 
   // attachInterrupt(interruptPin, echo_interrupt(), CHANGE);  // Attach interrupt to the sensor echo input
   // echo_duration = 180;
 }
@@ -51,7 +51,7 @@ int USS::readUSS()
 // --------------------------
 void timerIsr()
 {
-    trigger_pulse();                                 // Schedule the trigger pulses
+    //trigger_pulse();                                 // Schedule the trigger pulses
 }
 
 // trigger_pulse() called every 50 uS to schedule trigger pulses.
@@ -59,6 +59,7 @@ void timerIsr()
 // Minimum trigger pulse width for the HC-SR04 is 10 us. This system
 // delivers a 50 uS pulse.
 // --------------------------
+/*
 void trigger_pulse()
 {
       static volatile int state = 0;                 // State machine variable
@@ -86,6 +87,7 @@ void trigger_pulse()
            break;
      }
 }
+*/
 
 /*
 void echo_interrupt1()

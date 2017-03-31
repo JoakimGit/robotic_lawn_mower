@@ -9,6 +9,8 @@
  * Defines
  */
 
+#define MAX_RPM 65;
+
 #include "vesc_uart.h"
 #include <SPI.h>
 #include <Servo.h>
@@ -19,7 +21,7 @@ public:
     Motor(int, HardwareSerial*);   // Constructor, specify which pin the motor is connected to
     void initMotor();              // Attach the servo to the pin and set the pulse range
     void updateMotor();            // Read values from the motor
-    void changeSpeed(int);         // Set speed (0-180). Less than 90 is backward, 90 is still, more than 90 is foward
+    void setRPM(int);         // Set RPM of motor (From -65 to 65);
     void stopMotor();              // Change speed to still.
     int readSpeed();               // Read speed.
     int currentThrottle;           // current throttle

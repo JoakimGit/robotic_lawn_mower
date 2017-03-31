@@ -38,7 +38,7 @@ void Motor::initMotor()
     // Attach the servo to the correct pin and set the pulse range
     esc.attach(escPin, minPulseRate, maxPulseRate);
     // Set speed to still.
-    changeSpeed(90);
+    setRPM(0);
     delay(1000);
 }
 
@@ -61,15 +61,25 @@ void Motor::updateMotor()
     }
 }
 
-void Motor::changeSpeed(int nspeed)
+//Set RPM of motor (From -65 to 65);
+void Motor::setRPM(int RPM)
 {
-    
-    changeThrottle(nspeed);
+    int new_speed;
+    if ( RPM < 0 ) {
+      new_speed = 90-abs(RPM)*90/MAX_RPM;
+    }
+    else if ( RPM > 0 ) {
+      new_speed = 90+RPM*90/MAX_RPM;
+    }
+    else {
+      new_speed = 90;   // Set RPM to zero.
+    }
+    changeThrottle(new_speed);
 }
 
 void Motor::stopMotor()
 {
-  changeSpeed(90);
+  setRPM(0);
 }
 
 int Motor::readSpeed()
