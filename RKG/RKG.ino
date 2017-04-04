@@ -1,10 +1,18 @@
+/////////////////////
 // :::  Includes :::
+/////////////////////
+
 #include "IMU.h"
 #include "Motor.h"
 //#include "Cutting.h"
 //#include "IR.h"
 //#include "USS.h"
 //#include"Bumper.h"
+
+
+/////////////////////
+// ::: Parameters :::
+/////////////////////
 
 #define MOTORRIGHT  8                  // Pin 8 is connected to the right motor
 #define MOTORLEFT   9                  // Pin 9 is connected to the left motor
@@ -25,12 +33,7 @@
 #define KD  0.03
 #define TF  0
 
-// ::: Variabler :::
-//IMU imu;                    // Class used for IMU functions
-Motor rightMotor(MOTORRIGHT, &SERIALRIGHT);         
-Motor leftMotor(MOTORLEFT, &SERIALLEFT);
-
-// PID-regulator parameters
+// PID-regulator variables
 unsigned long timer_us;
 static uint32_t pidTimer_us = 0;
 double h;
@@ -54,57 +57,72 @@ float u_left;
 float u_right;
 
 
+/////////////////////
+// ::: Components :::
+/////////////////////
+
+//IMU imu;                    // Class used for IMU functions
+Motor rightMotor(MOTORRIGHT, &SERIALRIGHT);
+Motor leftMotor(MOTORLEFT, &SERIALLEFT);
+
+
+/////////////////////
 // Initializations
-  void setup()
+/////////////////////
+
+void setup()
 {
-    Serial.begin(115200);
-    SERIALRIGHT.begin(115200);
-    SERIALLEFT.begin(115200);
-    //imu.initIMU();              // Initiate the IMU
-    rightMotor.initMotor();     // Initiate the right motor
-    leftMotor.initMotor();      // Initiate the left motor
+  Serial.begin(115200);
+  SERIALRIGHT.begin(115200);
+  SERIALLEFT.begin(115200);
+  //imu.initIMU();              // Initiate the IMU
+  rightMotor.initMotor();     // Initiate the right motor
+  leftMotor.initMotor();      // Initiate the left motor
 }
 
 
-// Main loop, read and display data
+/////////////////////
+// Main loop, control system
+/////////////////////
+
 void loop()
 {
-     
-    // Time management - read actual time and calculate the time since last sample time
-    timer_us = micros(); // Time of current sample in microseconds  
-    h = (double)(timer_us - pidTimer_us) / 1000000.0; // Time since last sample in seconds
-    pidTimer_us = timer_us;  // Save the time of this sampleTime of last sample
 
-    // Read RPM of left and right motors.
-    float leftRPM = leftMotor.readSpeed();
-    float rightRPM = rightMotor.readSpeed();
+  // Time management - read actual time and calculate the time since last sample time
+  timer_us = micros(); // Time of current sample in microseconds
+  h = (double)(timer_us - pidTimer_us) / 1000000.0; // Time since last sample in seconds
+  pidTimer_us = timer_us;  // Save the time of this sampleTime of last sample
 
-    // Error
-    e_left = ref_left-leftRPM;
-    e_right = ref_right-rightRPM;
+  // Read RPM of left and right motors (reference value)
+  float leftRPM = leftMotor.readSpeed();
+  float rightRPM = rightMotor.readSpeed();
 
-    // PID-reg
-    P_left = KP * e_left;
-    P_right = KP * e_right;
-    
-    D_left = TF/(TF+h)*D_left + KD/(TF+h)*(e_left-e_old_left);
-    D_right = TF/(TF+h)*D_right + KD/(TF+h)*(e_right-e_old_right);
-    
-    u_left = P_left + I_left + D_left; // Calculate control output
-    u_right = P_right + I_right + D_right;
+  // Reference error
+  e_left = ref_left - leftRPM;
+  e_right = ref_right - rightRPM;
 
-    I_left = I_left + KI*h * e_left;
-    I_right = I_right + KI*h * e_right;
+  // PID-regulator
+  P_left = KP * e_left;
+  P_right = KP * e_right;
 
-    // Output
-    leftMotor.setRPM(u_left);
-    rightMotor.setRPM(u_right);
-    
-    /* // Example code for the IMU
-     * imu.updateIMU();
-     * float ax = imu.acc[0];
-     * float vx = imu.velocity[0];
-     */
+  D_left = TF / (TF + h) * D_left + KD / (TF + h) * (e_left - e_old_left);
+  D_right = TF / (TF + h) * D_right + KD / (TF + h) * (e_right - e_old_right);
+
+  u_left = P_left + I_left + D_left; // Calculate control output
+  u_right = P_right + I_right + D_right;
+
+  I_left = I_left + KI * h * e_left;
+  I_right = I_right + KI * h * e_right;
+
+  // Control system
+  leftMotor.setRPM(u_left);
+  rightMotor.setRPM(u_right);
+
+  /* // Example code for the IMU
+     imu.updateIMU();
+     float ax = imu.acc[0];
+     float vx = imu.velocity[0];
+  */
 }
 
 
