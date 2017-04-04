@@ -25,6 +25,7 @@ private:
     void timerIsr();                      // 50mS interrupt ISR(). Called evert time the hardware timer 1 times out.
     void trigger_pulse();
     void distance_flasher();
+    void echo_interrupt();
     
     // Variables
     int trigPin;                            // Triggers output

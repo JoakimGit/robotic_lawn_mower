@@ -30,15 +30,12 @@ void USS::initUSS()
 {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
-  //Timer1.attachInterrupt( timerIsr() );                 // Attach interrupt to the timer service routine 
-  // attachInterrupt(interruptPin, echo_interrupt(), CHANGE);  // Attach interrupt to the sensor echo input
   // echo_duration = 180;
 }
 
 int USS::readUSS()
 {
-  // return echo_duration/58;   // Print the distance in centimeters
-  return 0;
+  return echo_duration/58;   // Print the distance in centimeters
 }
 
 
@@ -49,9 +46,10 @@ int USS::readUSS()
 // timerIsr() 50uS second interrupt ISR()
 // Called every time the hardware timer 1 times out.
 // --------------------------
-void timerIsr()
+void USS::timerIsr()
 {
-    //trigger_pulse();                                 // Schedule the trigger pulses
+    trigger_pulse();          // Schedule the trigger pulses
+    echo_interrupt();
 }
 
 // trigger_pulse() called every 50 uS to schedule trigger pulses.
@@ -59,8 +57,8 @@ void timerIsr()
 // Minimum trigger pulse width for the HC-SR04 is 10 us. This system
 // delivers a 50 uS pulse.
 // --------------------------
-/*
-void trigger_pulse()
+
+void USS::trigger_pulse()
 {
       static volatile int state = 0;                 // State machine variable
 
@@ -87,12 +85,11 @@ void trigger_pulse()
            break;
      }
 }
-*/
 
-/*
-void echo_interrupt1()
+
+void USS::echo_interrupt()
 {
-  switch (digitalRead(echoPin1))                     // Test to see if the signal is high or low
+  switch (digitalRead(echoPin))                     // Test to see if the signal is high or low
   {
     case HIGH:                                      // High so must be the start of the echo pulse
       echo_end = 0;                                 // Clear the end time
@@ -105,5 +102,5 @@ void echo_interrupt1()
       break;
   }
 }
-*/
+
 

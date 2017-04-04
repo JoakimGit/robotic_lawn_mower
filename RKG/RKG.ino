@@ -6,8 +6,9 @@
 #include "Motor.h"
 //#include "Cutting.h"
 //#include "IR.h"
-//#include "USS.h"
+#include "USS.h"
 //#include"Bumper.h"
+#include <TimerOne.h>   // Used for interrupts
 
 
 /////////////////////
@@ -19,6 +20,9 @@
 
 #define SERIALRIGHT Serial3            // Serial ports connected to the hall sensor
 #define SERIALLEFT Serial2
+
+#define TIMER_US    50     // Timer is set to 50 uS
+#define TICK_COUNTS 4000   // 200 mS worth of timer ticks
 
 #define USS_TRIGGER1 12
 #define USS_TRIGGER2 11
@@ -62,8 +66,22 @@ float u_right;
 /////////////////////
 
 //IMU imu;                    // Class used for IMU functions
-Motor rightMotor(MOTORRIGHT, &SERIALRIGHT);
-Motor leftMotor(MOTORLEFT, &SERIALLEFT);
+//Motor rightMotor(MOTORRIGHT, &SERIALRIGHT);
+//Motor leftMotor(MOTORLEFT, &SERIALLEFT);
+USS left_USS(USS_TRIGGER1, USS_ECHO1);
+
+
+
+/////////////////////
+// Interrupt function used to check sensors
+/////////////////////
+
+void checkSensors()
+{
+  Serial.println("It's working!");
+  // leftUSS.timerIsr();
+  
+}
 
 
 /////////////////////
@@ -72,12 +90,19 @@ Motor leftMotor(MOTORLEFT, &SERIALLEFT);
 
 void setup()
 {
-  Serial.begin(115200);
+  // imu.initIMU();              // Initialise the IMU
+  
   SERIALRIGHT.begin(115200);
   SERIALLEFT.begin(115200);
-  //imu.initIMU();              // Initiate the IMU
-  rightMotor.initMotor();     // Initiate the right motor
-  leftMotor.initMotor();      // Initiate the left motor
+  //rightMotor.initMotor();     // Initialise the right motor
+  //leftMotor.initMotor();      // Initialise the left motor
+
+  left_USS.initUSS();            // Initialise the left USS
+
+  Timer1.initialize(TIMER_US); // Initialise timer 1
+  Timer1.attachInterrupt(checkSensors);
+
+  Serial.begin(115200);
 }
 
 
@@ -87,7 +112,10 @@ void setup()
 
 void loop()
 {
-
+  delay(1000);
+  Serial.println("Left USS value is: ");
+  Serial.print(left_USS.readUSS());
+  /*
   // Time management - read actual time and calculate the time since last sample time
   timer_us = micros(); // Time of current sample in microseconds
   h = (double)(timer_us - pidTimer_us) / 1000000.0; // Time since last sample in seconds
@@ -117,26 +145,14 @@ void loop()
   // Control system
   leftMotor.setRPM(u_left);
   rightMotor.setRPM(u_right);
+  */
 
-  /* // Example code for the IMU
-     imu.updateIMU();
-     float ax = imu.acc[0];
-     float vx = imu.velocity[0];
+  /*
+  // Example code for the IMU
+  imu.updateIMU();
+  Serial.println(imu.angle[1]);
   */
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
