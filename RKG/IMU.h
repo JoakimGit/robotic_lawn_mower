@@ -21,7 +21,7 @@
 #define    ACC_SENSITIVITY            2048
 
 #define    GRAVITY                    9.82      // Gravity in Sweden
-#define    PERIOD                     0.002      // Period in seconds
+#define    PERIOD                     0.04     // Period in seconds, 0.002 prev, 0.04 for whole program
 
 
 class IMU {
@@ -38,7 +38,7 @@ public:
     float angle[3];       // Gyroscope angle (x,y,z) [raw]
     
 
-private:
+//private:
     // Used to handle the I2C bus
     void I2Cread(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint8_t* Data);
     void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data);

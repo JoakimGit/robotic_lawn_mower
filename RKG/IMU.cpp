@@ -34,6 +34,7 @@ void IMU::initIMU()
 
   // Gyroscope
   normalizeGyro();  // gy = 20.78  // Calculate offset
+  gyro_offset[1] = 20.78;
   b0 = 0.0214;      // Filter constant (weight of new measured value) - Measured in Matlab
   b1 = 0.0214;      // Filter constant (weight of old measured value) - Measured in Matlab
   filter_out = 0;   // Filter output
@@ -155,6 +156,7 @@ void IMU::normalizeGyro()
 
   while (cnt < 1000) {
     // Read data from buffer
+    I2Cread(MPU9250_ADDRESS,0x3B,14,IMU::Buffer); // Read raw data from the IMU
     int16_t gx=-(Buffer[8]<<8 | Buffer[9]);
     int16_t gy=-(Buffer[10]<<8 | Buffer[11]);
     int16_t gz=Buffer[12]<<8 | Buffer[13];
