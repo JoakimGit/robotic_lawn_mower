@@ -21,7 +21,7 @@
 #define    ACC_SENSITIVITY            2048
 
 #define    GRAVITY                    9.82      // Gravity in Sweden
-#define    PERIOD                     0.01      // Period in seconds
+#define    PERIOD                     0.002      // Period in seconds
 
 
 class IMU {
@@ -30,11 +30,12 @@ public:
     void initIMU();       // Initialize I2C bus
     
     void updateIMU();     // Update the IMU output data
-    void resetIMU();      // Reset velocity
+    void resetIMU();      // Reset and calibrate the IMU
 
     float acc[3];         // Accelerometer output (x,y,z) [m/s^2]
     float gyro[3];        // Gyroscope output (x,y,z) [raw]
-    float velocity[3];    // Velocity since reset (x,y,z) [m/s]
+
+    float angle[3];       // Gyroscope angle (x,y,z) [raw]
     
 
 private:
@@ -44,9 +45,17 @@ private:
     uint8_t Buffer[14];    // Buffer used to save I2C data
 
     // IMU functions
-    void updateAcc();   // Read, convert and save raw data from accelerometer in Acc
-    void updateVel();   // Updates velocity with new accelerometer data.
-    void updateGyro();  // Read, convert and save raw data from gyroscope in Acc
+    void updateAcc();     // Read, convert and save raw data from accelerometer in Acc
+    void updateGyro();    // Read, convert and save raw data from gyroscope in Acc
+    void updateAngle();   // Update angle with new gyroscope data
+
+    // Gyroscope variables
+    int gyro_old[3];      // Previous output
+    void normalizeGyro(); // Calculate offset
+    int gyro_offset[3];   // Offset (when still all axis should have output 0)
+    float b0;             // Filter constant (weight of new measured value)
+    float b1;             // Filter constant (weight of old measured value)
+    float filter_out;     // Filter output
 };
 
 

@@ -5,7 +5,9 @@
 #include "IMU.h"
 
 
-// Constructor
+/*
+ ***** Constructor *****
+ */
 IMU::IMU()
 {
 }
@@ -26,11 +28,16 @@ void IMU::initIMU()
   I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_16_G);
 
   // Set start values to 0.
-  IMU::velocity[0] = 0;
-  IMU::velocity[1] = 0;
-  IMU::velocity[2] = 0;
-}
+  acc[0] = 0; acc[1] = 0; acc[2] = 0;
+  angle[0] = 0; angle[1] = 0; angle[2] = 0;
+  gyro_old[0] = 0; gyro_old[1] = 0; gyro_old[2] = 0;
 
+  // Gyroscope
+  normalizeGyro();  // gy = 20.78  // Calculate offset
+  b0 = 0.0214;      // Filter constant (weight of new measured value) - Measured in Matlab
+  b1 = 0.0214;      // Filter constant (weight of old measured value) - Measured in Matlab
+  filter_out = 0;   // Filter output
+}
 
 // Update the IMU output data
 void IMU::updateIMU()
@@ -38,8 +45,25 @@ void IMU::updateIMU()
   I2Cread(MPU9250_ADDRESS,0x3B,14,IMU::Buffer); // Read raw data from the IMU
   updateAcc();                                  // Convert & update accelerometer data
   updateGyro();                                 // Update gyroscope data
-  updateVel();                                  // Update velocity
+  updateAngle();
 }
+
+// Reset and calibrate the IMU.
+void IMU::resetIMU()
+{
+  acc[0] = 0; acc[1] = 0; acc[2] = 0;                     // Reset current accelerometer data
+  gyro[0] = 0; gyro[1] = 0; gyro[2] = 0;                  // Reset current gyroscope data
+  gyro_old[0] = 0; gyro_old[1] = 0; gyro_old[2] = 0;      // Reset old gyroscope data
+  angle[0] = 0; angle[1] = 0; angle[2] = 0;               // Reset gyroscope angle
+  normalizeGyro();                                        // Calculate the new gyroscope offset
+}
+
+
+
+
+
+
+
 
 
 /*
@@ -75,54 +99,86 @@ void IMU::I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
   Wire.endTransmission();
 }
 
+
+
 // Read and convert data from the accelerometer ( m/s^2 )
 void IMU::updateAcc()
 {
   // Read data from buffer
-  int16_t ax=-(IMU::Buffer[0]<<8 | IMU::Buffer[1]);
-  int16_t ay=-(IMU::Buffer[2]<<8 | IMU::Buffer[3]);
-  int16_t az=IMU::Buffer[4]<<8 | IMU::Buffer[5];
+  int16_t ax=-(Buffer[0]<<8 | Buffer[1]);
+  int16_t ay=-(Buffer[2]<<8 | Buffer[3]);
+  int16_t az=Buffer[4]<<8 | Buffer[5];
 
-  // Convert 16 bits values to m/s^2
+  // Convert raw data to m/s^2
   // Save data in acc{x,y,z}
   float a[3];
   a[0] = ax; a[1] = ay; a[2] = az;
-  IMU::acc[0] = a[0]/ACC_SENSITIVITY*GRAVITY;
-  IMU::acc[1] = a[1]/ACC_SENSITIVITY*GRAVITY;
-  IMU::acc[2] = a[2]/ACC_SENSITIVITY*GRAVITY;
+  acc[0] = a[0]/ACC_SENSITIVITY*GRAVITY;
+  acc[1] = a[1]/ACC_SENSITIVITY*GRAVITY;
+  acc[2] = a[2]/ACC_SENSITIVITY*GRAVITY;
   return;
 }
 
-// Reset velocity to zero
-void IMU::resetIMU()
-{
-  // Reset velocity
-  IMU::velocity[0] = 0;
-  IMU::velocity[1] = 0;
-  IMU::velocity[2] = 0;
-}
+
 
 // Read and convert data from the gyroscope
 void IMU::updateGyro()
 {
   // Read data from buffer
-  int16_t gx=-(IMU::Buffer[8]<<8 | IMU::Buffer[9]);
-  int16_t gy=-(IMU::Buffer[10]<<8 | IMU::Buffer[11]);
-  int16_t gz=IMU::Buffer[12]<<8 | IMU::Buffer[13];
+  int16_t gx=-(Buffer[8]<<8 | Buffer[9]);
+  int16_t gy=-(Buffer[10]<<8 | Buffer[11]);
+  int16_t gz=Buffer[12]<<8 | Buffer[13];
 
-  // Save data in gyro{x,y,z}
-  IMU::gyro[0] = gx;
-  IMU::gyro[1] = gy;
-  IMU::gyro[2] = gz;
-  return;
+  // Save data in gyro{x,y,z} with 
+  gx = gx + gyro_offset[0];
+  gy = gy + gyro_offset[1];
+  gz = gz + gyro_offset[2];
+  
+  filter_out = b0*gy + b1*gyro_old[1];
+  gyro_old[1] = gy;
+  gyro[1] = filter_out;
 }
 
-// Update velocity data with most recent accelerometer output
-void IMU::updateVel()
+
+// Update gyroscope angle
+void IMU::updateAngle()
 {
-  IMU::velocity[0] = velocity[0] + IMU::acc[0] * PERIOD;
-  IMU::velocity[1] = velocity[0] + IMU::acc[1] * PERIOD;
-  IMU::velocity[2] = velocity[0] + IMU::acc[2] * PERIOD;
-  return;
+  angle[1] = angle[1]+gyro[1]*PERIOD;
 }
+
+
+// Calculate gyroscope offset (offset of 1000 samples)
+void IMU::normalizeGyro()
+{
+  int cnt = 0;
+  int g_sum[3] = {0,0,0};
+
+  while (cnt < 1000) {
+    // Read data from buffer
+    int16_t gx=-(Buffer[8]<<8 | Buffer[9]);
+    int16_t gy=-(Buffer[10]<<8 | Buffer[11]);
+    int16_t gz=Buffer[12]<<8 | Buffer[13];
+    // Save the sum of total data
+    g_sum[0] += gx;
+    g_sum[1] += gy;
+    g_sum[2] += gz;
+    cnt++;
+  }
+
+  gyro_offset[0] = g_sum[0]/cnt;
+  gyro_offset[1] = g_sum[0]/cnt;
+  gyro_offset[2] = g_sum[0]/cnt;
+  
+}
+
+
+
+
+
+
+
+
+
+
+
 
