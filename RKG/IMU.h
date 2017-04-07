@@ -52,7 +52,7 @@ public:
     // Gyroscope variables
     int gyro_old[3];      // Previous output
     void normalizeGyro(); // Calculate offset
-    int gyro_offset[3];   // Offset (when still all axis should have output 0)
+    float gyro_offset[3];   // Offset (when still all axis should have output 0)
     float b0;             // Filter constant (weight of new measured value)
     float b1;             // Filter constant (weight of old measured value)
     float filter_out;     // Filter output

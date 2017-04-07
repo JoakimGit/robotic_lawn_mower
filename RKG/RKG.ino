@@ -128,23 +128,25 @@ void loop()
   //Serial.println("Left USS value is: ");
   //Serial.print(left_USS.readUSS());
 
-  // Time management - read actual time and calculate the time since last sample time
-  timer_us = micros(); // Time of current sample in microseconds
-  h = (double)(timer_us - pidTimer_us) / 1000000.0; // Time since last sample in seconds
-  pidTimer_us = timer_us;  // Save the time of this sampleTime of last sample
+  
 // -------------------------F ----------------------------------------
   imu.updateIMU();
-  e_vinkel = ref_vinkel - imu.angle[1];
+  e_vinkel = ref_vinkel - round(imu.angle[1]);
+  Serial.println((imu.angle[1]));
   
   u2 = KP_F * e_vinkel;
 
 // ------------------------ u2,u1 to wv,wh----------------------------------
   
-  ref_right = u1 - u2/2;
-  ref_left = u1 + u2/2;
+  ref_right = u1 + u2/2;
+  ref_left = u1 - u2/2;
 
 // ------------------------------------inner loop, makes sure w = wv , wh-------------------------
-
+  // Time management - read actual time and calculate the time since last sample time
+  timer_us = micros(); // Time of current sample in microseconds
+  h = (double)(timer_us - pidTimer_us) / 1000000.0; // Time since last sample in seconds
+  pidTimer_us = timer_us;  // Save the time of this sampleTime of last sample
+  
   // Read RPM of left and right motors (reference value)
   leftMotor.updateMotor();
   rightMotor.updateMotor();
@@ -169,12 +171,10 @@ void loop()
   I_right = I_right + KI * h * e_right;
 
   // Control system
-  leftMotor.setRPM(u_right);
-  rightMotor.setRPM(u_left);
+  leftMotor.setRPM(u_left);//innan u:right?
+  rightMotor.setRPM(u_right);
 
 
-  leftMotor.updateMotor();
-  rightMotor.updateMotor();
   Serial.print("Left RPM: ");
   Serial.println(leftMotor.readSpeed());
   Serial.print("right RPM: ");

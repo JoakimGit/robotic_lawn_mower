@@ -34,7 +34,7 @@ void IMU::initIMU()
 
   // Gyroscope
   normalizeGyro();  // gy = 20.78  // Calculate offset
-  gyro_offset[1] = 20.78;
+  //gyro_offset[1] = 20.78;
   b0 = 0.0214;      // Filter constant (weight of new measured value) - Measured in Matlab
   b1 = 0.0214;      // Filter constant (weight of old measured value) - Measured in Matlab
   filter_out = 0;   // Filter output
@@ -151,8 +151,9 @@ void IMU::updateAngle()
 // Calculate gyroscope offset (offset of 1000 samples)
 void IMU::normalizeGyro()
 {
+  /*
   int cnt = 0;
-  int g_sum[3] = {0,0,0};
+  float g_sum[3] = {0,0,0};
 
   while (cnt < 1000) {
     // Read data from buffer
@@ -168,8 +169,11 @@ void IMU::normalizeGyro()
   }
 
   gyro_offset[0] = g_sum[0]/cnt;
-  gyro_offset[1] = g_sum[0]/cnt;
-  gyro_offset[2] = g_sum[0]/cnt;
+  gyro_offset[1] = -g_sum[1]/cnt;
+  gyro_offset[2] = g_sum[2]/cnt;
+  */
+  gyro_offset[1] = 20.995;
+ 
   
 }
 
