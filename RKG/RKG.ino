@@ -9,6 +9,7 @@
 #include "USS.h"
 //#include"Bumper.h"
 #include <TimerOne.h>   // Used for interrupts
+#include "ObjectManagement.h"
 
 
 /////////////////////
@@ -32,8 +33,10 @@
 #define USS_ECHO2  3
 #define USS_ECHO3  19
 
-#define KP  0.5 // förr 0.5 nya 0.0302
-#define KI  4       // förr 4 nya 0.2187
+#define BUMPERPIN 18
+
+#define KP  0.03 // förr 0.5 nya 0.0302
+#define KI  5       // förr 4 nya 0.2187
 #define KD  0.03        //förr 0.03 nya 0.0
 #define TF  0
 #define KP_F 1
@@ -64,7 +67,7 @@ float I_right;
 float u_left;
 float u_right;
 
-float u1 = MEDEL;
+float u1;
 float u2;
 
 
@@ -76,6 +79,7 @@ IMU imu;                    // Class used for IMU functions
 Motor rightMotor(MOTORRIGHT, &SERIALRIGHT);
 Motor leftMotor(MOTORLEFT, &SERIALLEFT);
 //USS left_USS(USS_TRIGGER1, USS_ECHO1);
+ObjectManagement obj_management;
 
 
 
@@ -104,17 +108,22 @@ void setup()
   SERIALLEFT.begin(115200);
   rightMotor.initMotor();     // Initialise the right motor
   leftMotor.initMotor();      // Initialise the left motor
+  obj_management.setAvgSpeed(MEDEL);
 
   //left_USS.initUSS();            // Initialise the left USS
 
   //Timer1.initialize(TIMER_US); // Initialise timer 1
   //Timer1.attachInterrupt(checkSensors);
   //attachInterrupt(digitalPinToInterrupt(USS_ECHO1), left_USS.echo_interrupt, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(BUMPERPIN), bumperChange, HIGH);
   
 
   Serial.begin(115200);
-  Serial.print("Gyro offset: ");
-  Serial.println(imu.gyro_offset[1]);
+ // Serial.print("Gyro offset: ");
+  //Serial.println(imu.gyro_offset[1]);
+  
+  
+  
 }
 
 
@@ -127,12 +136,18 @@ void loop()
   //delay(1000);
   //Serial.println("Left USS value is: ");
   //Serial.print(left_USS.readUSS());
-
-  
+// -------------------------get Avg speed and ref_angle. If we are done turning around, reset angle.---------------------
+  if(obj_management.turningDone(imu.angle[1])){
+    imu.resetIMU();
+  }
+  ref_vinkel = obj_management.getAngleRef();
+  u1 = obj_management.getAvgSpeed();
+ // Serial.print("u1 = ");
+ // Serial.println(u1);
 // -------------------------F ----------------------------------------
   imu.updateIMU();
   e_vinkel = ref_vinkel - round(imu.angle[1]);
-  Serial.println((imu.angle[1]));
+//  Serial.println((imu.angle[1]));
   
   u2 = KP_F * e_vinkel;
 
@@ -171,19 +186,22 @@ void loop()
   I_right = I_right + KI * h * e_right;
 
   // Control system
-  leftMotor.setRPM(u_left);//innan u:right?
+  leftMotor.setRPM(u_left);
   rightMotor.setRPM(u_right);
 
 
-  Serial.print("Left RPM: ");
-  Serial.println(leftMotor.readSpeed());
-  Serial.print("right RPM: ");
-  Serial.println(rightMotor.readSpeed());
+  //Serial.print("Left RPM: ");
+  //Serial.println(leftMotor.readSpeed());
+  //Serial.print("right RPM: ");
+  //Serial.println(rightMotor.readSpeed());
+  //om antingen IMU-värden fuckar eller om mjukstart inte funkar kan det vara nya implementering av integral.
+  //Om mjukstart inte tillräckligt mjuk (ska ske efter 1 sek) så dela h med två i obj_maneg.
+}
 
+void bumperChange()
+{
+    obj_management.objectDetection();  
   
-  // Example code for the IMU
-  //imu.updateIMU();
-  //Serial.println(imu.angle[1]);
 }
 
 

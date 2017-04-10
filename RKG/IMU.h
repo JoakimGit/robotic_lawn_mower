@@ -7,6 +7,11 @@
 
 #include "stdint.h"   // Enables use of uint8_t
 #include "Wire.h"     // Used to connect with the IC2 device.
+#if defined(ARDUINO) && ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
 
 /*
  * Arduino mega 2560 rev3 addresses used by the IMU.
@@ -21,7 +26,7 @@
 #define    ACC_SENSITIVITY            2048
 
 #define    GRAVITY                    9.82      // Gravity in Sweden
-#define    PERIOD                     0.04     // Period in seconds, 0.002 prev, 0.04 for whole program
+//#define    PERIOD                     0.04     // Period in seconds, 0.002 prev, 0.04 for whole program
 
 
 class IMU {
@@ -56,6 +61,9 @@ public:
     float b0;             // Filter constant (weight of new measured value)
     float b1;             // Filter constant (weight of old measured value)
     float filter_out;     // Filter output
+    float h;
+    unsigned long timer;
+    unsigned long last_timer;
 };
 
 

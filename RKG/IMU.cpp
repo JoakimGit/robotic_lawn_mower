@@ -134,7 +134,7 @@ void IMU::updateGyro()
   gx = gx + gyro_offset[0];
   gy = gy + gyro_offset[1];
   gz = gz + gyro_offset[2];
-  
+
   filter_out = b0*gy + b1*gyro_old[1];
   gyro_old[1] = gy;
   gyro[1] = filter_out;
@@ -144,7 +144,10 @@ void IMU::updateGyro()
 // Update gyroscope angle
 void IMU::updateAngle()
 {
-  angle[1] = angle[1]+gyro[1]*PERIOD;
+  timer = micros();
+  h = (float)(timer - last_timer)/1000000.0;
+  last_timer = timer;
+  angle[1] = angle[1]+gyro[1]*h; //integrerar
 }
 
 
