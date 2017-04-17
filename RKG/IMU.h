@@ -1,32 +1,10 @@
-/*
- * Created by Joakim on 2017-03-21.
- */
 
-#ifndef IMU_IMU_H
-#define IMU_IMU_H
+#ifndef IMU_H
+#define IMU_H
 
-#include "stdint.h"   // Enables use of uint8_t
-#include "Wire.h"     // Used to connect with the IC2 device.
-#if defined(ARDUINO) && ARDUINO >= 100
-#include "Arduino.h"
-#else
-#include "WProgram.h"
-#endif
-
-/*
- * Arduino mega 2560 rev3 addresses used by the IMU.
- */
-
-#define    MPU9250_ADDRESS            0x68
-#define    MAG_ADDRESS                0x0C
-
-#define    GYRO_FULL_SCALE_2000_DPS   0x18
-
-#define    ACC_FULL_SCALE_16_G        0x18
-#define    ACC_SENSITIVITY            2048
-
-#define    GRAVITY                    9.82      // Gravity in Sweden
-//#define    PERIOD                     0.04     // Period in seconds, 0.002 prev, 0.04 for whole program
+#ifndef CONFIG_H
+#include "Config.h"                 // Include configurations.
+#endif // CONFIG_H
 
 
 class IMU {
@@ -67,5 +45,5 @@ public:
 };
 
 
-#endif //IMU_IMU_H
+#endif //IMU_H
 

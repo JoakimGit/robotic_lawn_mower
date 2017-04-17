@@ -2,60 +2,37 @@
 // :::  Includes :::
 /////////////////////
 
+#include "Config.h"
 #include "IMU.h"
 #include "Motor.h"
 //#include "Cutting.h"
-//#include "IR.h"
+#include "IR.h"
 #include "USS.h"
-//#include"Bumper.h"
-#include <TimerOne.h>   // Used for interrupts
 #include "ObjectManagement.h"
+#include <TimerOne.h>
 
 
 /////////////////////
-// ::: Parameters :::
+// ::: Variables :::
 /////////////////////
-
-#define MOTORRIGHT  8                  // Pin 8 is connected to the right motor
-#define MOTORLEFT   9                  // Pin 9 is connected to the left motor
-
-#define SERIALRIGHT Serial3            // Serial ports connected to the hall sensor
-#define SERIALLEFT Serial2
-
-#define TIMER_US    50     // Timer is set to 50 uS
-#define TICK_COUNTS 4000   // 200 mS worth of timer ticks
-
-#define USS_TRIGGER1 12
-#define USS_TRIGGER2 11
-#define USS_TRIGGER3 10
-
-#define USS_ECHO1  2
-#define USS_ECHO2  3
-#define USS_ECHO3  19
-
-#define BUMPERPIN 18
-
-#define KP  0.03 // förr 0.5 nya 0.0302
-#define KI  5       // förr 4 nya 0.2187
-#define KD  0.03        //förr 0.03 nya 0.0
-#define TF  0
-#define KP_F 1
-#define MEDEL 30 //RPM
 
 // PID-regulator variables
 unsigned long timer_us;
 static uint32_t pidTimer_us = 0;
 double h;
+
 // Reference values
 float ref_vinkel = 0;
 float ref_left;
 float ref_right;
+
 // Reference error
 float e_vinkel;
 float e_left;
 float e_right;
 float e_old_left;
 float e_old_right;
+
 // PID variables
 float P_left;
 float P_right;
@@ -63,12 +40,19 @@ float D_left;
 float D_right;
 float I_left;
 float I_right;
+
 // PID output
 float u_left;
 float u_right;
 
+// Control output
 float u1;
 float u2;
+
+// Used for communication between USS
+bool ussLeftTrig = false;
+bool ussMidTrig = false;
+bool ussRightTrig = false;
 
 
 /////////////////////
@@ -78,8 +62,11 @@ float u2;
 IMU imu;                    // Class used for IMU functions
 Motor rightMotor(MOTORRIGHT, &SERIALRIGHT);
 Motor leftMotor(MOTORLEFT, &SERIALLEFT);
-//USS left_USS(USS_TRIGGER1, USS_ECHO1);
+USS left_USS(USS_TRIGGER1, USS_ECHO1,USS_MIN_DISTANCE);
+USS mid_USS(USS_TRIGGER2, USS_ECHO2,USS_MIN_DISTANCE);
+USS right_USS(USS_TRIGGER3, USS_ECHO3,USS_MIN_DISTANCE);
 ObjectManagement obj_management;
+IR irSensors;
 
 
 
@@ -87,43 +74,89 @@ ObjectManagement obj_management;
 // Interrupt function used to check sensors
 /////////////////////
 
-void checkSensors()
+/*
+ * Send USS pulse from all sensors
+ */
+void triggerUSS()
 {
-  Serial.println("It's working!");
-  // leftUSS.trigger_pulse();
-  
+  left_USS.trigger_pulse();
+  mid_USS.trigger_pulse();
+  right_USS.trigger_pulse();
 }
 
+/*
+ * Stop if sensors detects object
+ */
+void recieveEchoLeft(){
+  if(!left_USS.echo_recieve()){
+    ussLeftTrig = true;
+    Serial.println("left");
+    obj_management.setAvgSpeed(15);
+  }
+  else if(!ussMidTrig && !ussRightTrig){
+    ussLeftTrig = false;
+    obj_management.setAvgSpeed(30);
+  }
+  else { ussLeftTrig = false; }
+}
+void recieveEchomid(){
+  if(!mid_USS.echo_recieve()){
+    ussMidTrig = true;
+    Serial.println("mid");
+    obj_management.setAvgSpeed(15);
+  }
+  else if(!ussLeftTrig && !ussRightTrig){
+    ussMidTrig = false;
+    obj_management.setAvgSpeed(30);
+  }
+  else { ussMidTrig = false; }
+}
+void recieveEchoright(){
+  if(!right_USS.echo_recieve()){
+    ussRightTrig = true;
+    Serial.println("right");
+    obj_management.setAvgSpeed(15);
+  }
+  else if(!ussLeftTrig && !ussMidTrig){
+    ussRightTrig = false;
+    obj_management.setAvgSpeed(30);
+  }
+  else { ussRightTrig = false; }
+}
+
+/*
+ * Stop & turn around when bumper sensor is activated
+ */
+void bumperChange(){ obj_management.objectDetection(); }
 
 /////////////////////
 // Initializations
 /////////////////////
 
-
 void setup()
 {
-  imu.initIMU();              // Initialise the IMU
+  // Intertial Measurement Unit (IMU)
+  imu.initIMU();                         // Initialise the IMU
   
-  SERIALRIGHT.begin(115200);
-  SERIALLEFT.begin(115200);
-  rightMotor.initMotor();     // Initialise the right motor
-  leftMotor.initMotor();      // Initialise the left motor
-  obj_management.setAvgSpeed(MEDEL);
+  // Motors
+  SERIALRIGHT.begin(115200);            // Serial communication with hall sensors
+  SERIALLEFT.begin(115200);             // Serial communication with hall sensors
+  rightMotor.initMotor();               // Initialise the right motor
+  leftMotor.initMotor();                // Initialise the left motor
+  obj_management.setAvgSpeed(AVG_RPM);  // Set average speed for motors
 
-  //left_USS.initUSS();            // Initialise the left USS
-
-  //Timer1.initialize(TIMER_US); // Initialise timer 1
-  //Timer1.attachInterrupt(checkSensors);
-  //attachInterrupt(digitalPinToInterrupt(USS_ECHO1), left_USS.echo_interrupt, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(BUMPERPIN), bumperChange, HIGH);
-  
-
+  // Ultrasonic sensor (USS)
+  left_USS.initUSS();                   // Initialise the left USS
+  mid_USS.initUSS();                    // Initialise the mid USS
+  right_USS.initUSS();                  // Initialise the right USS
+  Timer1.initialize(TIMER1_US);         // Initialise timer1
+  Timer1.attachInterrupt(triggerUSS);   // Trigger USS every timer tick
+  attachInterrupt(digitalPinToInterrupt(USS_ECHO1), recieveEchoLeft, CHANGE);     // Recieve echo when echo pin changes
+  attachInterrupt(digitalPinToInterrupt(USS_ECHO2), recieveEchomid, CHANGE);      // Recieve echo when echo pin changes
+  attachInterrupt(digitalPinToInterrupt(USS_ECHO3), recieveEchoright, CHANGE);    // Recieve echo when echo pin changes
+  attachInterrupt(digitalPinToInterrupt(BUMPERPIN), bumperChange, HIGH);          // Recieve echo when echo pin changes
+ 
   Serial.begin(115200);
- // Serial.print("Gyro offset: ");
-  //Serial.println(imu.gyro_offset[1]);
-  
-  
-  
 }
 
 
@@ -133,30 +166,33 @@ void setup()
 
 void loop()
 {
-  //delay(1000);
-  //Serial.println("Left USS value is: ");
-  //Serial.print(left_USS.readUSS());
-// -------------------------get Avg speed and ref_angle. If we are done turning around, reset angle.---------------------
+
+/*
+ * If RKG is done turning reset reference angle,
+ * otherwise check current angle offset
+ */
   if(obj_management.turningDone(imu.angle[1])){
     imu.resetIMU();
   }
   ref_vinkel = obj_management.getAngleRef();
   u1 = obj_management.getAvgSpeed();
- // Serial.print("u1 = ");
- // Serial.println(u1);
-// -------------------------F ----------------------------------------
+
+/*
+ * Control system part 1
+ * Make sure angle offset is small enough
+ */
   imu.updateIMU();
   e_vinkel = ref_vinkel - round(imu.angle[1]);
-//  Serial.println((imu.angle[1]));
-  
   u2 = KP_F * e_vinkel;
 
-// ------------------------ u2,u1 to wv,wh----------------------------------
-  
+  // Calculate new RPM for both motors
   ref_right = u1 + u2/2;
   ref_left = u1 - u2/2;
 
-// ------------------------------------inner loop, makes sure w = wv , wh-------------------------
+/*
+ * Control system part 2
+ * Make sure both motors have the selected RPM
+ */
   // Time management - read actual time and calculate the time since last sample time
   timer_us = micros(); // Time of current sample in microseconds
   h = (double)(timer_us - pidTimer_us) / 1000000.0; // Time since last sample in seconds
@@ -188,25 +224,18 @@ void loop()
   // Control system
   leftMotor.setRPM(u_left);
   rightMotor.setRPM(u_right);
-
-
-  //Serial.print("Left RPM: ");
-  //Serial.println(leftMotor.readSpeed());
-  //Serial.print("right RPM: ");
-  //Serial.println(rightMotor.readSpeed());
-  //om antingen IMU-värden fuckar eller om mjukstart inte funkar kan det vara nya implementering av integral.
-  //Om mjukstart inte tillräckligt mjuk (ska ske efter 1 sek) så dela h med två i obj_maneg.
-}
-
-void bumperChange()
-{
-    obj_management.objectDetection();  
   
+
 }
 
+/*
+ * Comments:
+ */
+//om antingen IMU-värden fuckar eller om mjukstart inte funkar kan det vara nya implementering av integral.
+//Om mjukstart inte tillräckligt mjuk (ska ske efter 1 sek) så dela h med två i obj_maneg.
 
-
-
-
-
-
+/*
+ * TO-DO
+ */
+// - Make IR sensors use 2 different classes to enable more / fewer IR sensors without much work
+// - Make sure that motors actually stop when voltage is too low

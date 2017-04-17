@@ -1,6 +1,3 @@
-//
-// Created by Joakim on 2017-03-21.
-//
 
 #include "IMU.h"
 
@@ -174,6 +171,7 @@ void IMU::normalizeGyro()
   gyro_offset[0] = g_sum[0]/cnt;
   gyro_offset[1] = -g_sum[1]/cnt;
   gyro_offset[2] = g_sum[2]/cnt;
+  Serial.println(gyro_offset[1]);
   */
   gyro_offset[1] = 20.995;
  

@@ -1,42 +1,33 @@
-/*
- * 
- */
 
 #ifndef OBJECT_MANAGEMENT_H
 #define OBJECT_MANAGEMENT_H
 
-/*
- * Defines
- */
-#define PERIOD 0.03     // Period in seconds, 0.002 prev, 0.04 for whole program
-#if defined(ARDUINO) && ARDUINO >= 100
-#include "Arduino.h"
-#else
-#include "WProgram.h"
-#endif
+#ifndef CONFIG_H
+#include "Config.h"                     // Include configurations.
+#endif // CONFIG_H
 
 class ObjectManagement {
 public:
-    ObjectManagement();              // Constructor
-    void setAvgSpeed(float Avgspeed);     // 
-    float getAvgSpeed();
-    void objectDetection();
-    float getAngleRef();
-    bool turningDone(float angle);
+    ObjectManagement();                 // Constructor
+    void setAvgSpeed(float Avgspeed);   // Set the wanted average speed
+    float getAvgSpeed();                // Smoothly change current speed to wanted speed.
+    void objectDetection();             // Turn around if bumper sensor is activated
+    float getAngleRef();                // Handle reference angle reset
+    bool turningDone(float angle);      // Start driving when turning is done
+    
     
     
 
 private:
-    // void privateFunction();
-    float avgspeedgoal;
-    float current_avg = 0;
-    unsigned long time4detection;
+    float avgspeedgoal;                 // Wanted average speed
+    float current_avg;                  // Current average speed
+    unsigned long time4detection;       // Timer initiated after collision
     double h;
-    unsigned long timer;
-    unsigned long last_timer;
-    float angleref = 0;
-    bool detection = false;
-    bool turning = false;
+    double obj_timer;
+    float angleref;
+    bool detection;                     // True from collision until done turning
+    bool turning;                       // True when turning
+    int dir;                            // Direction which the robot turns
 };
 
 

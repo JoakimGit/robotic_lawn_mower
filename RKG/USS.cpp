@@ -1,23 +1,22 @@
-//
-// Created by Joakim on 2017-03-25.
-//
 
 #include "USS.h"
-
 
 // Constructor
 // pinOut: trigger output (Pins 10-12)
 // pinIn: echo input (Pins 2-4)
 // interruptPin: interrupt id (for echo pulsePins 0-2 are interrupt signals)
-USS::USS(int trigPin, int echoPin)
+USS::USS(int trigPin, int echoPin, int minDistance)
 {
     USS::trigPin = trigPin;
     USS::echoPin = echoPin;
+    min_distance = minDistance;
     echo_start = 0;
     echo_end = 0;
-    echo_duration = 0;
+    echo_duration = 2000;
     trigger_time_count = 0;
+    state = 0;
     floatingCounter = 0;
+    max_counter = 0;
 }
 
 
@@ -30,41 +29,29 @@ void USS::initUSS()
 {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
-  // echo_duration = 180;
+  Serial.println("initUSS...");
+  Serial.print("Trigger/Echo pins: ");
+  Serial.print(USS::trigPin);
+  Serial.print("\t");
+  Serial.println(USS::echoPin);
+  delay(2000);
 }
 
-int USS::readUSS()
+// Return last measured distance (cm)
+int USS::readDistance()
 {
-  return echo_duration/58;   // Print the distance in centimeters
+  return echo_duration/58;
 }
-
 
 /*
- ***** Private methods *****
+ * trigger_pulse() called every 50 uS to schedule trigger pulses.
+ * Generates a pulse one timer tick long.
  */
-
-// timerIsr() 50uS second interrupt ISR()
-// Called every time the hardware timer 1 times out.
-// --------------------------
-void USS::timerIsr()
-{
-    trigger_pulse();          // Schedule the trigger pulses
-    echo_interrupt();
-}
-
-// trigger_pulse() called every 50 uS to schedule trigger pulses.
-// Generates a pulse one timer tick long.
-// Minimum trigger pulse width for the HC-SR04 is 10 us. This system
-// delivers a 50 uS pulse.
-// --------------------------
-
 void USS::trigger_pulse()
-{
-      static volatile int state = 0;                 // State machine variable
-
-      if (!(--trigger_time_count))                   // Count to 200mS
+{    
+      if (((--trigger_time_count) < 0))              // Count to 200mS
       {                                              // Time out - Initiate trigger pulse
-         trigger_time_count = TICK_COUNTS;           // Reload
+         trigger_time_count = TICK_COUNTS;           // Reload (TICK_COUNTS = 4000)
          state = 1;                                  // Changing to state 1 initiates a pulse
       }
     
@@ -86,7 +73,7 @@ void USS::trigger_pulse()
      }
 }
 
-
+// Recieve echo
 void USS::echo_interrupt()
 {
   switch (digitalRead(echoPin))                     // Test to see if the signal is high or low
@@ -103,4 +90,20 @@ void USS::echo_interrupt()
   }
 }
 
-
+// Recieve echo and return true if echo distance is less than min_distance.
+bool USS::echo_recieve() {
+    echo_interrupt();
+    
+    if (readDistance() < min_distance) {
+      max_counter++;
+    } else {
+      max_counter = 0;
+    }
+    
+    if (max_counter < MAX_COUNT) {
+      return true;
+    } else {
+      return false;
+    }
+}
+ 

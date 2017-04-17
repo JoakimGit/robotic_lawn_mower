@@ -1,6 +1,3 @@
-//
-// Created by Joakim on 2017-03-25.
-//
 
 #include "Motor.h"
 
@@ -10,7 +7,7 @@
 Motor::Motor(int pin, HardwareSerial *serialPin)
 {
     currentThrottle = 0;     // Throttle from 0-180
-    escPin = pin;            //set the pin that is connected to the vesc
+    escPin = pin;            // Set the pin that is connected to the vesc
     serialIO = serialPin;
     minPulseRate = 1000;
     maxPulseRate = 2000;
@@ -18,12 +15,12 @@ Motor::Motor(int pin, HardwareSerial *serialPin)
     
     // Output data from the hall sensor
     VescMeasuredValues;      // Contains output from sensor
-    voltage = 0.0;           //measured battery voltage
-    current = 0.0;           //measured battery current
-    motor_current = 0.0;     //measured motor current
-    power = 0.0;             //calculated power
-    c_speed = 0.0;           //measured rpm * Pi * wheel diameter [km] * 60 [minutes]
-    // c_dist = 0.00;           //measured odometry tachometer [turns] * Pi * wheel diameter [km]
+    voltage = 0.0;           // Measured battery voltage
+    current = 0.0;           // Measured battery current
+    motor_current = 0.0;     // Measured motor current
+    power = 0.0;             // Calculated power
+    c_speed = 0.0;           // Measured rpm * Pi * wheel diameter [km] * 60 [minutes]
+    // c_dist = 0.00;        // Measured odometry tachometer [turns] * Pi * wheel diameter [km]
     Count_error = 0;         // Used for debugging
 }
 
@@ -35,10 +32,8 @@ Motor::Motor(int pin, HardwareSerial *serialPin)
 // Update the motor output data
 void Motor::initMotor()
 {   
-    // Attach the servo to the correct pin and set the pulse range
-    esc.attach(escPin, minPulseRate, maxPulseRate);
-    // Set speed to still.
-    setRPM(0);
+    esc.attach(escPin, minPulseRate, maxPulseRate);   // Attach the servo to the correct pin and set the pulse range
+    setRPM(0);                                        // Set speed to still.
     delay(1000);
 }
 
@@ -51,11 +46,10 @@ void Motor::updateMotor()
         current = VescMeasuredValues.current_in;
         motor_current = VescMeasuredValues.current_motor;
         power = current*voltage;
-        c_speed = (VescMeasuredValues.rpm/57.75);         // 57.5 measured value for gear box and electric poles
-        //c_dist = c_speed*3.14159265359*0.000083;
+        c_speed = (VescMeasuredValues.rpm/HALL2RPM);
         Count_error = 0;
 
-        if (voltage < 17) {         // Stop motor if battery voltage is too low
+        if (voltage < MIN_VOLTAGE) {         // Stop motor if battery voltage is too low
           stopMotor();
         }
     }
