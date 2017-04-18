@@ -20,15 +20,16 @@
 #else
 #include "WProgram.h"
 #endif
+#define LEDPIN 13
 
 /*
  * Regulator parameters
  */
 #define KP_F 1                  // KP value of P-regulator controlling angle offset
 
-#define KP  0.03                // KP value of PID-regualtor controlling RPM offset
-#define KI  5                   // KI value of PID-regualtor controlling RPM offset
-#define KD  0.03                // KD value of PID-regualtor controlling RPM offset
+#define KP  0.0158                // KP value of PID-regualtor controlling RPM offset
+#define KI  6.0391                   // KI value of PID-regualtor controlling RPM offset
+#define KD  0.00               // KD value of PID-regualtor controlling RPM offset
 #define TF  0                   // TF value of PID-regualtor controlling RPM offset
 
 
@@ -94,7 +95,13 @@
  */
 #define BUMPERPIN 18  // PIN used by the bumper sensor
 
-
+/*
+ * IR sensor
+ */
+#define IRPIN_FRONT         5
+#define IRPIN_BACK          6
+#define IR_TRIGGER_DISTANCE 130
+#define IR_MAX_COUNT        10
 
 
 

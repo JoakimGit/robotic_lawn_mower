@@ -15,7 +15,7 @@ Motor::Motor(int pin, HardwareSerial *serialPin)
     
     // Output data from the hall sensor
     VescMeasuredValues;      // Contains output from sensor
-    voltage = 0.0;           // Measured battery voltage
+    voltage = 20;           // Measured battery voltage
     current = 0.0;           // Measured battery current
     motor_current = 0.0;     // Measured motor current
     power = 0.0;             // Calculated power

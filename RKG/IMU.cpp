@@ -25,12 +25,9 @@ void IMU::initIMU()
   I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_16_G);
 
   // Set start values to 0.
-  acc[0] = 0; acc[1] = 0; acc[2] = 0;
-  angle[0] = 0; angle[1] = 0; angle[2] = 0;
-  gyro_old[0] = 0; gyro_old[1] = 0; gyro_old[2] = 0;
+  resetIMU();
 
   // Gyroscope
-  normalizeGyro();  // gy = 20.78  // Calculate offset
   //gyro_offset[1] = 20.78;
   b0 = 0.0214;      // Filter constant (weight of new measured value) - Measured in Matlab
   b1 = 0.0214;      // Filter constant (weight of old measured value) - Measured in Matlab
@@ -54,6 +51,7 @@ void IMU::resetIMU()
   gyro_old[0] = 0; gyro_old[1] = 0; gyro_old[2] = 0;      // Reset old gyroscope data
   angle[0] = 0; angle[1] = 0; angle[2] = 0;               // Reset gyroscope angle
   normalizeGyro();                                        // Calculate the new gyroscope offset
+  last_timer = micros();
 }
 
 
@@ -128,6 +126,7 @@ void IMU::updateGyro()
   int16_t gz=Buffer[12]<<8 | Buffer[13];
 
   // Save data in gyro{x,y,z} with 
+ // Serial.println(gy);
   gx = gx + gyro_offset[0];
   gy = gy + gyro_offset[1];
   gz = gz + gyro_offset[2];
@@ -135,6 +134,8 @@ void IMU::updateGyro()
   filter_out = b0*gy + b1*gyro_old[1];
   gyro_old[1] = gy;
   gyro[1] = filter_out;
+  //Serial.print("filtrerad vinkelhastighet");
+  //Serial.println(gyro[1]);
 }
 
 
@@ -151,7 +152,7 @@ void IMU::updateAngle()
 // Calculate gyroscope offset (offset of 1000 samples)
 void IMU::normalizeGyro()
 {
-  /*
+  
   int cnt = 0;
   float g_sum[3] = {0,0,0};
 
@@ -166,14 +167,16 @@ void IMU::normalizeGyro()
     g_sum[1] += gy;
     g_sum[2] += gz;
     cnt++;
+    
   }
 
   gyro_offset[0] = g_sum[0]/cnt;
   gyro_offset[1] = -g_sum[1]/cnt;
   gyro_offset[2] = g_sum[2]/cnt;
   Serial.println(gyro_offset[1]);
-  */
-  gyro_offset[1] = 20.995;
+  
+  
+ // gyro_offset[1] = 20.995;
  
   
 }

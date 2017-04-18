@@ -15,6 +15,7 @@ public:
     void stopMotor();              // Change speed to still.
     int readSpeed();               // Read speed.
     int currentThrottle;           // current throttle
+    float voltage;                  //measured battery voltage
 
 private:
     // Functions
@@ -30,7 +31,6 @@ private:
     Servo esc;
     // Output data from the hall sensor
     mc_values VescMeasuredValues;   // Contains output from hall sensor
-    float voltage;                  //measured battery voltage
     float current;                  //measured battery current
     float motor_current;            //measured motor current
     float c_speed;                  //measured rpm * Pi * wheel diameter [km] * 60 [minutes]

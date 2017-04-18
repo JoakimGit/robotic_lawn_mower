@@ -53,20 +53,22 @@ float u2;
 bool ussLeftTrig = false;
 bool ussMidTrig = false;
 bool ussRightTrig = false;
+bool ussOn = true;
 
 
 /////////////////////
 // ::: Components :::
 /////////////////////
 
-IMU imu;                    // Class used for IMU functions
+IMU imu;
 Motor rightMotor(MOTORRIGHT, &SERIALRIGHT);
 Motor leftMotor(MOTORLEFT, &SERIALLEFT);
 USS left_USS(USS_TRIGGER1, USS_ECHO1,USS_MIN_DISTANCE);
 USS mid_USS(USS_TRIGGER2, USS_ECHO2,USS_MIN_DISTANCE);
 USS right_USS(USS_TRIGGER3, USS_ECHO3,USS_MIN_DISTANCE);
 ObjectManagement obj_management;
-IR irSensors;
+IR irFront(IRPIN_FRONT);
+IR irBack(IRPIN_BACK);
 
 
 
@@ -88,36 +90,33 @@ void triggerUSS()
  * Stop if sensors detects object
  */
 void recieveEchoLeft(){
-  if(!left_USS.echo_recieve()){
+  if(!left_USS.echo_recieve()&&ussOn){
     ussLeftTrig = true;
-    Serial.println("left");
     obj_management.setAvgSpeed(15);
   }
-  else if(!ussMidTrig && !ussRightTrig){
+  else if(!ussMidTrig && !ussRightTrig && ussOn){
     ussLeftTrig = false;
     obj_management.setAvgSpeed(30);
   }
   else { ussLeftTrig = false; }
 }
 void recieveEchomid(){
-  if(!mid_USS.echo_recieve()){
+  if(!mid_USS.echo_recieve()&&ussOn){
     ussMidTrig = true;
-    Serial.println("mid");
     obj_management.setAvgSpeed(15);
   }
-  else if(!ussLeftTrig && !ussRightTrig){
+  else if(!ussLeftTrig && !ussRightTrig && ussOn){
     ussMidTrig = false;
     obj_management.setAvgSpeed(30);
   }
   else { ussMidTrig = false; }
 }
 void recieveEchoright(){
-  if(!right_USS.echo_recieve()){
+  if(!right_USS.echo_recieve()&&ussOn){
     ussRightTrig = true;
-    Serial.println("right");
     obj_management.setAvgSpeed(15);
   }
-  else if(!ussLeftTrig && !ussMidTrig){
+  else if(!ussLeftTrig && !ussMidTrig && ussOn){
     ussRightTrig = false;
     obj_management.setAvgSpeed(30);
   }
@@ -127,7 +126,20 @@ void recieveEchoright(){
 /*
  * Stop & turn around when bumper sensor is activated
  */
-void bumperChange(){ obj_management.objectDetection(); }
+void bumperChange()
+{ 
+  obj_management.objectDetection(); 
+  ussOn = false;
+}
+
+/*
+ * Check if RKG is close enough to the grind with IR sensors
+ * Return true if distance is too far
+ */
+bool checkIR()
+{
+  return (irFront.check() || irFront.check());
+}
 
 /////////////////////
 // Initializations
@@ -135,8 +147,8 @@ void bumperChange(){ obj_management.objectDetection(); }
 
 void setup()
 {
-  // Intertial Measurement Unit (IMU)
-  imu.initIMU();                         // Initialise the IMU
+  Serial.begin(115200);
+ 
   
   // Motors
   SERIALRIGHT.begin(115200);            // Serial communication with hall sensors
@@ -154,9 +166,14 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(USS_ECHO1), recieveEchoLeft, CHANGE);     // Recieve echo when echo pin changes
   attachInterrupt(digitalPinToInterrupt(USS_ECHO2), recieveEchomid, CHANGE);      // Recieve echo when echo pin changes
   attachInterrupt(digitalPinToInterrupt(USS_ECHO3), recieveEchoright, CHANGE);    // Recieve echo when echo pin changes
+
+  // Bumper sensor
   attachInterrupt(digitalPinToInterrupt(BUMPERPIN), bumperChange, HIGH);          // Recieve echo when echo pin changes
+  
+  // Intertial Measurement Unit (IMU)
+  imu.initIMU();                        // Initialise the IMU
  
-  Serial.begin(115200);
+  
 }
 
 
@@ -166,6 +183,18 @@ void setup()
 
 void loop()
 {
+  // Stop if RKG is lifted or if battery voltage is too low
+  if(checkIR() ||leftMotor.voltage < 17){
+    leftMotor.stopMotor();
+    rightMotor.stopMotor();
+    Serial.println(leftMotor.voltage);
+    while(1){
+      digitalWrite(LEDPIN,HIGH);
+      delay(500);
+      digitalWrite(LEDPIN,LOW);
+      delay(500);
+    }
+  }
 
 /*
  * If RKG is done turning reset reference angle,
@@ -173,6 +202,7 @@ void loop()
  */
   if(obj_management.turningDone(imu.angle[1])){
     imu.resetIMU();
+    ussOn = true;
   }
   ref_vinkel = obj_management.getAngleRef();
   u1 = obj_management.getAvgSpeed();
@@ -215,9 +245,11 @@ void loop()
   D_left = TF / (TF + h) * D_left + KD / (TF + h) * (e_left - e_old_left);
   D_right = TF / (TF + h) * D_right + KD / (TF + h) * (e_right - e_old_right);
 
-  u_left = P_left + I_left + D_left; // Calculate control output
+  // Control output
+  u_left = P_left + I_left + D_left;
   u_right = P_right + I_right + D_right;
 
+  // Calculate I-value
   I_left = I_left + KI * h * e_left;
   I_right = I_right + KI * h * e_right;
 

@@ -3,25 +3,20 @@
 #define IR_H
 
 #ifndef CONFIG_H
-#include "Config.h"                 // Include configurations.
+#include "Config.h"                   // Include configurations.
 #endif // CONFIG_H
 
 class IR {
   public:
-    IR();              // Constructor
-    void initIR();     // 
-    bool breakIR();
+    IR(int pin);   // Constructor
+    bool check();                    //
     
 
   private:
-    // void privateFunction();
-    int irpin1 = 5;
-    int irval1 = 300;
-
-    int irpin2 = 6;
-    int irval2 = 300;
-
+    int pin;
+    int trigger_distance;
     int ir_count;
+    int max_count;
 
 
 };

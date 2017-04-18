@@ -44,6 +44,7 @@ void ObjectManagement::objectDetection()
   angleref = 0;
   time4detection = millis();
   detection = true;
+  Serial.println("Back!");
 }
 
 // Handle reference angle reset
