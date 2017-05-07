@@ -24,14 +24,14 @@ void IMU::initIMU()
   // * Configure accelerometers range *
   I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_16_G);
 
-  // Set start values to 0.
-  resetIMU();
-
   // Gyroscope
   //gyro_offset[1] = 20.78;
-  b0 = 0.0214;      // Filter constant (weight of new measured value) - Measured in Matlab
-  b1 = 0.0214;      // Filter constant (weight of old measured value) - Measured in Matlab
+  b0 = 0.0214*1.42;      // Filter constant (weight of new measured value) - Measured in Matlab - in degrees
+  b1 = 0.0214*1.42;      // Filter constant (weight of old measured value) - Measured in Matlab - in degrees
   filter_out = 0;   // Filter output
+  firsttime = true;   
+  // Set start values to 0.
+  resetIMU();
 }
 
 // Update the IMU output data
@@ -51,7 +51,11 @@ void IMU::resetIMU()
   gyro_old[0] = 0; gyro_old[1] = 0; gyro_old[2] = 0;      // Reset old gyroscope data
   angle[0] = 0; angle[1] = 0; angle[2] = 0;               // Reset gyroscope angle
   normalizeGyro();                                        // Calculate the new gyroscope offset
-  last_timer = micros();
+  if(firsttime){
+    last_timer = micros();
+    firsttime = false;
+  }
+  
 }
 
 
@@ -174,6 +178,7 @@ void IMU::normalizeGyro()
   gyro_offset[1] = -g_sum[1]/cnt;
   gyro_offset[2] = g_sum[2]/cnt;
   Serial.println(gyro_offset[1]);
+ // gyro_offset[1]= 19.20;
   
   
  // gyro_offset[1] = 20.995;

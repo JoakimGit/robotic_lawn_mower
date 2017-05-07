@@ -27,10 +27,10 @@
  */
 #define KP_F 1                  // KP value of P-regulator controlling angle offset
 
-#define KP  0.0158                // KP value of PID-regualtor controlling RPM offset
-#define KI  6.0391                   // KI value of PID-regualtor controlling RPM offset
-#define KD  0.00               // KD value of PID-regualtor controlling RPM offset
-#define TF  0                   // TF value of PID-regualtor controlling RPM offset
+#define KP  0.5       //gamla:0.0115         // KP value of PID-regualtor controlling RPM offset
+#define KI  4                   // KI value of PID-regualtor controlling RPM offset 2.3
+#define KD  0.00               // KD value of PID-regualtor controlling RPM offset 0.03
+#define TF  0.000                   // TF value of PID-regualtor controlling RPM offset 0.00263 funkade ej 1.0 funkar
 
 
 /*
@@ -47,7 +47,7 @@
 #define TICK_COUNTS  4000       // 200 mS worth of timer ticks, trigger USS pulse
 #define MAX_COUNT    2          // How many time distance is allowed to go past max_distance
 
-#define USS_MIN_DISTANCE 80     // Echo_recieve will return true when distance is below 80 cm
+#define USS_MIN_DISTANCE 50     // Echo_recieve will return true when distance is below 80 cm
 // PINs used to send pulses
 #define USS_TRIGGER1 12         // Left sensor
 #define USS_TRIGGER2 11         // Mid sensor

@@ -42,6 +42,7 @@ public:
     float h;
     unsigned long timer;
     unsigned long last_timer;
+    bool firsttime;
 };
 
 

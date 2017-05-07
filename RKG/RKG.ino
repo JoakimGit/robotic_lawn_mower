@@ -48,6 +48,7 @@ float u_right;
 // Control output
 float u1;
 float u2;
+float kp_f;
 
 // Used for communication between USS
 bool ussLeftTrig = false;
@@ -87,7 +88,7 @@ void triggerUSS()
 }
 
 /*
- * Stop if sensors detects object
+ * slowdown or stop if sensors detects object
  */
 void recieveEchoLeft(){
   if(!left_USS.echo_recieve()&&ussOn){
@@ -130,6 +131,7 @@ void bumperChange()
 { 
   obj_management.objectDetection(); 
   ussOn = false;
+  kp_f = 0.5;
 }
 
 /*
@@ -166,11 +168,13 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(USS_ECHO1), recieveEchoLeft, CHANGE);     // Recieve echo when echo pin changes
   attachInterrupt(digitalPinToInterrupt(USS_ECHO2), recieveEchomid, CHANGE);      // Recieve echo when echo pin changes
   attachInterrupt(digitalPinToInterrupt(USS_ECHO3), recieveEchoright, CHANGE);    // Recieve echo when echo pin changes
+  pinMode(LEDPIN,OUTPUT);
 
   // Bumper sensor
   attachInterrupt(digitalPinToInterrupt(BUMPERPIN), bumperChange, HIGH);          // Recieve echo when echo pin changes
   
   // Intertial Measurement Unit (IMU)
+  kp_f = KP_F;
   imu.initIMU();                        // Initialise the IMU
  
   
@@ -201,8 +205,12 @@ void loop()
  * otherwise check current angle offset
  */
   if(obj_management.turningDone(imu.angle[1])){
+    leftMotor.stopMotor();
+    rightMotor.stopMotor();
     imu.resetIMU();
     ussOn = true;
+    kp_f = KP_F;
+    
   }
   ref_vinkel = obj_management.getAngleRef();
   u1 = obj_management.getAvgSpeed();
@@ -212,8 +220,12 @@ void loop()
  * Make sure angle offset is small enough
  */
   imu.updateIMU();
-  e_vinkel = ref_vinkel - round(imu.angle[1]);
-  u2 = KP_F * e_vinkel;
+  //Serial.print(((imu.angle[1])));
+  //Serial.print(" ");
+  
+  e_vinkel = ref_vinkel - ((imu.angle[1]));
+  
+  u2 = kp_f * e_vinkel;
 
   // Calculate new RPM for both motors
   ref_right = u1 + u2/2;
@@ -244,6 +256,7 @@ void loop()
 
   D_left = TF / (TF + h) * D_left + KD / (TF + h) * (e_left - e_old_left);
   D_right = TF / (TF + h) * D_right + KD / (TF + h) * (e_right - e_old_right);
+  //Serial.println(D_right);
 
   // Control output
   u_left = P_left + I_left + D_left;
@@ -256,6 +269,16 @@ void loop()
   // Control system
   leftMotor.setRPM(u_left);
   rightMotor.setRPM(u_right);
+ 
+  //Serial.print("left Speed: ");
+  //Serial.println(leftMotor.readSpeed());
+  //Serial.print("right Speed: ");
+  //Serial.println(rightMotor.readSpeed());
+ // Serial.print(leftMotor.readSpeed());
+ // Serial.print(" ");
+  //Serial.print(rightMotor.readSpeed());
+  //Serial.print(" ");
+  
   
 
 }
@@ -263,7 +286,7 @@ void loop()
 /*
  * Comments:
  */
-//om antingen IMU-värden fuckar eller om mjukstart inte funkar kan det vara nya implementering av integral.
+
 //Om mjukstart inte tillräckligt mjuk (ska ske efter 1 sek) så dela h med två i obj_maneg.
 
 /*

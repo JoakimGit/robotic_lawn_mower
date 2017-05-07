@@ -26,10 +26,10 @@ void ObjectManagement::setAvgSpeed(float avgspeed)
 float ObjectManagement::getAvgSpeed()
 {
   if(current_avg < avgspeedgoal || detection){
-    current_avg = current_avg + PERIOD*avgspeedgoal/2; // After 1 second speed goal will be met
+    current_avg = current_avg + PERIOD*avgspeedgoal/2; // After 2 seconds speed goal will be met
   }
   else if(current_avg > avgspeedgoal){
-    current_avg = current_avg - PERIOD*avgspeedgoal;
+    current_avg = current_avg - PERIOD*avgspeedgoal*4;
   }
   
   return current_avg;
@@ -44,7 +44,7 @@ void ObjectManagement::objectDetection()
   angleref = 0;
   time4detection = millis();
   detection = true;
-  Serial.println("Back!");
+ // Serial.println("Back!");
 }
 
 // Handle reference angle reset
@@ -54,14 +54,14 @@ float ObjectManagement::getAngleRef()
   if(obj_timer > 2*BACKTIME/4 && obj_timer < BACKTIME && detection){
     current_avg = 0;
     avgspeedgoal = 0;
-    Serial.println("slowing down!");
+   // Serial.println("slowing down!");
   }
 
   if(obj_timer > BACKTIME && detection){
     detection = false;
     current_avg = 0;
     dir = (int)(random(0,2));
-    Serial.println(dir);
+    //Serial.println(dir);
     if(dir){
       angleref = random(60,120);
     }
