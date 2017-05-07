@@ -1,33 +1,31 @@
 /////////////////////
 // :::  Includes :::
 /////////////////////
-
 #include "Config.h"
 #include "IMU.h"
 #include "Motor.h"
-//#include "Cutting.h"
+#include "Cutting.h"
 #include "IR.h"
 #include "USS.h"
 #include "ObjectManagement.h"
 #include <TimerOne.h>
 
 
-/////////////////////
-// ::: Variables :::
-/////////////////////
-
-// PID-regulator variables
+//////////////////////////////
+// ::: Regulator Variables :::
+//////////////////////////////
+// Time
 unsigned long timer_us;
 static uint32_t pidTimer_us = 0;
 double h;
 
 // Reference values
-float ref_vinkel = 0;
+float ref_angle = 0;
 float ref_left;
 float ref_right;
 
 // Reference error
-float e_vinkel;
+float e_angle;
 float e_left;
 float e_right;
 float e_old_left;
@@ -40,15 +38,15 @@ float D_left;
 float D_right;
 float I_left;
 float I_right;
+float kp_f;       // Outer P-reg
 
 // PID output
 float u_left;
 float u_right;
 
-// Control output
-float u1;
-float u2;
-float kp_f;
+// Control signal
+float u1;         // Angle
+float u2;         // Velocity
 
 // Used for communication between USS
 bool ussLeftTrig = false;
@@ -60,7 +58,6 @@ bool ussOn = true;
 /////////////////////
 // ::: Components :::
 /////////////////////
-
 IMU imu;
 Motor rightMotor(MOTORRIGHT, &SERIALRIGHT);
 Motor leftMotor(MOTORLEFT, &SERIALLEFT);
@@ -73,10 +70,9 @@ IR irBack(IRPIN_BACK);
 
 
 
-/////////////////////
-// Interrupt function used to check sensors
-/////////////////////
-
+//////////////////////////////
+// ::: Interrupt functions :::
+//////////////////////////////
 /*
  * Send USS pulse from all sensors
  */
@@ -143,15 +139,13 @@ bool checkIR()
   return (irFront.check() || irFront.check());
 }
 
-/////////////////////
-// Initializations
-/////////////////////
-
+//////////////////////////
+// ::: Initializations :::
+//////////////////////////
 void setup()
 {
   Serial.begin(115200);
  
-  
   // Motors
   SERIALRIGHT.begin(115200);            // Serial communication with hall sensors
   SERIALLEFT.begin(115200);             // Serial communication with hall sensors
@@ -176,15 +170,13 @@ void setup()
   // Intertial Measurement Unit (IMU)
   kp_f = KP_F;
   imu.initIMU();                        // Initialise the IMU
- 
   
 }
 
 
-/////////////////////
-// Main loop, control system
-/////////////////////
-
+/////////////////////////
+// ::: Control system :::
+/////////////////////////
 void loop()
 {
   // Stop if RKG is lifted or if battery voltage is too low
@@ -212,35 +204,37 @@ void loop()
     kp_f = KP_F;
     
   }
-  ref_vinkel = obj_management.getAngleRef();
-  u1 = obj_management.getAvgSpeed();
 
 /*
- * Control system part 1
- * Make sure angle offset is small enough
+ * Outer control system
+ * Keep angle offset small
  */
+  // Reference value
+  ref_angle = obj_management.getAngleRef();
+  u1 = obj_management.getAvgSpeed();
+  
+  // Reference error
   imu.updateIMU();
-  //Serial.print(((imu.angle[1])));
-  //Serial.print(" ");
-  
-  e_vinkel = ref_vinkel - ((imu.angle[1]));
-  
-  u2 = kp_f * e_vinkel;
+  e_angle = ref_angle - ((imu.angle[1]));
 
-  // Calculate new RPM for both motors
+  // Control signal
+  u2 = kp_f * e_angle;
+
+  // Reference value for inner control system
   ref_right = u1 + u2/2;
   ref_left = u1 - u2/2;
 
 /*
- * Control system part 2
+ * Inner control system
  * Make sure both motors have the selected RPM
  */
-  // Time management - read actual time and calculate the time since last sample time
-  timer_us = micros(); // Time of current sample in microseconds
-  h = (double)(timer_us - pidTimer_us) / 1000000.0; // Time since last sample in seconds
-  pidTimer_us = timer_us;  // Save the time of this sampleTime of last sample
+  // Time management
+  // h is time since last sample [us]
+  timer_us = micros();
+  h = (double)(timer_us - pidTimer_us) / 1000000.0;
+  pidTimer_us = timer_us;
   
-  // Read RPM of left and right motors (reference value)
+  // Read reference value (RPM from motors)
   leftMotor.updateMotor();
   rightMotor.updateMotor();
   float leftRPM = leftMotor.readSpeed();
@@ -256,41 +250,16 @@ void loop()
 
   D_left = TF / (TF + h) * D_left + KD / (TF + h) * (e_left - e_old_left);
   D_right = TF / (TF + h) * D_right + KD / (TF + h) * (e_right - e_old_right);
-  //Serial.println(D_right);
 
-  // Control output
+  // Control signal
   u_left = P_left + I_left + D_left;
   u_right = P_right + I_right + D_right;
 
-  // Calculate I-value
+  // Calculate I-value (Euler forward)
   I_left = I_left + KI * h * e_left;
   I_right = I_right + KI * h * e_right;
 
   // Control system
   leftMotor.setRPM(u_left);
   rightMotor.setRPM(u_right);
- 
-  //Serial.print("left Speed: ");
-  //Serial.println(leftMotor.readSpeed());
-  //Serial.print("right Speed: ");
-  //Serial.println(rightMotor.readSpeed());
- // Serial.print(leftMotor.readSpeed());
- // Serial.print(" ");
-  //Serial.print(rightMotor.readSpeed());
-  //Serial.print(" ");
-  
-  
-
 }
-
-/*
- * Comments:
- */
-
-//Om mjukstart inte tillräckligt mjuk (ska ske efter 1 sek) så dela h med två i obj_maneg.
-
-/*
- * TO-DO
- */
-// - Make IR sensors use 2 different classes to enable more / fewer IR sensors without much work
-// - Make sure that motors actually stop when voltage is too low
